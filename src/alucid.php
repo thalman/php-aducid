@@ -4,22 +4,64 @@
 include_once "alucidenums.php";
 
 /**
- * \brief Function returns sdk level
+ * \brief Function returns sdk level.
+ *
+ * Function returns the PHP SDK version. Number before the decimal point
+ * represents major changes in API without backward compatibility.
+ *
+ * Minor version (after decimal point) shows the API "features".
  */
 function alucidVersion() {
-    return 2.51;
+    return 2.051;
 }
 
 /**
+ * \brief Function checks SDK level
  *
- * AlucidMessageSender implements methods for accessing R4 interface
+ * This function check the requested API level. It throws an exception if
+ * requested API level is not sufficient. For example if installed version
+ * is 2.051 and requested API level is:
+ *   - 1.0 - exception API 2.x is not compatible with 1.x
+ *   - 3.0 - exception API 2.x is not compatible with 3.x
+ *   - 2.03 - ok 2.051 >= 2.03
+ */
+function alucidRequired($apilevel) {
+    if( floor($apilevel) != floor(alucidVersion()) ) {
+        // Major version of API is different
+        throw new Exception(
+            'Wrong major ALUCID API version (requested '.$apilevel.', installed '.alucidVersion().').'
+        );
+    }
+    // major is the same, lets compare
+    if( $apilevel > alucidVersion() ) {
+        throw new Exception(
+            'Wrong minor ALUCID API version (requested '.$apilevel.', installed '.alucidVersion().').'
+        );
+    }
+    return true;
+}
+
+/**
+ * \brief ALUCID R4 soap client
  *
+ * AlucidMessageSender implements methods for accessing R4 interface.
+ * It is used by AlucidClient and AlucidSessionClient.
  */
 class AlucidMessageSender {
     /**
+     * \brief SOAP request for getting PSL attributes
      *
-     * returns array with PSL attributes
+     * \param R4URL - URL for R4 interface on AIM server
+     * \param request - array with different parameters
+     * \return an array with PSL attributes
      *
+     * See ALUCID general documentation for deailed explanation.
+     * Supported request parameters are:
+     *   - authId
+     *   - authKey
+     *   - bindingId
+     *   - AIMName
+     *   - attributeSetName
      */
     function callGetPSLAttributes($R4URL,$request) {
         $soap = new SoapClient(NULL,
@@ -70,9 +112,24 @@ class AlucidMessageSender {
         return $result;
     }
     /**
+     * \brief Starts operation on AIM server.
      *
-     * Starts operation on aim
+     * \param R4URL - URL for R4 interface on AIM server.
+     * \param request - array with different parameters.
+     * \return an array with newly created AIM session attributes.
      *
+     * See ALUCID general documentation for deailed explanation.
+     * Supported request parameters are:
+     *   - operationName
+     *   - authId
+     *   - bindingKey
+     *   - methodName
+     *   - methodParameter
+     *   - personalObject
+     *   - peigReturnName
+     *   - AAIM2
+     *   - ilData
+     *   - AIMName
      */
     function callRequestOperation($R4URL,$request) {
         $soap = new SoapClient(NULL,
@@ -136,9 +193,13 @@ class AlucidMessageSender {
         return $result;
     }
     /**
+     * \brief Closes the AIM session
      *
-     * Closes the AIM session
-     *
+     * See ALUCID general documentation for deailed explanation.
+     * Supported request parameters are:
+     *   - authId
+     *   - AIMName
+     *   - authKey
      */
     function callCloseSession($R4URL,$request) {
         $soap = new SoapClient(NULL,
@@ -170,9 +231,7 @@ class AlucidMessageSender {
         return $result;
     }
     /**
-     *
-     * returns name of the DOM node
-     *
+     * \brief Returns name of the DOM node.
      */
     private function getNameFromNode($node) {
         $attrs = $node->attributes;
@@ -185,9 +244,7 @@ class AlucidMessageSender {
         return NULL;
     }
     /**
-     *
-     * returns value of the DOM node
-     *
+     * \brief Returns value of the DOM node.
      */
     private function getValueFromNode($node) {
         $childs = $node->childNodes;
@@ -200,9 +257,7 @@ class AlucidMessageSender {
         return NULL;
     }
     /**
-     *
-     * parses XML reply and returns personal object as an array
-     *
+     * \brief Parses XML reply and returns personal object as an array.
      */
     private function parsePOReply($xmlstring){
         $result = array();
@@ -227,6 +282,9 @@ class AlucidMessageSender {
         }
         return $result;
     }
+    /**
+     * \brief Creates xml string for methodParameter in SOAP request.
+     */
     private function methodParamsToXML($params) {
         $xml = "";
         if(is_array($params) ) {
@@ -239,6 +297,9 @@ class AlucidMessageSender {
         }
         return $xml;
     }
+    /**
+     * \brief Creates xml string for with personalObject for SOAP request.
+     */
     private function createPersonalObjectXML($name, $type, $algorithm) {
         /*
          <personalObject xsi:type="xsd:string">
@@ -254,9 +315,7 @@ class AlucidMessageSender {
         return $xml;
     }
     /**
-     *
-     * implements READ operation for personalObject attributes
-     *
+     * \brief Implements READ operation for personalObject attributes.
      */
     private function readPersonalObject($R4URL,$request) {
         $soap = new SoapClient(NULL,
@@ -304,9 +363,7 @@ class AlucidMessageSender {
         return $result;
     }
     /**
-     *
-     * implements WRITE operation for personalObject attributes
-     *
+     * \brief Implements WRITE operation for personalObject attributes.
      */
     private function writePersonalObject($R4URL,$request) {
         if( ! isset($request["personalObject"]) ) {
@@ -364,8 +421,7 @@ class AlucidMessageSender {
         return $result;
     }
     /**
-     *
-     * implements operation with directory object
+     * \brief Implements operation with directory object.
      *
      * Function checks requested operation and call appropriate method.
      * Implemented operations are READ and WRITE. Otherwise Exception is
@@ -390,9 +446,10 @@ class AlucidMessageSender {
 }
 
 /**
+ * \brief AlucidClient class implements high-level API for using ALUCID.
  *
- * Basic class for working with ALUCID
- *
+ * AlucidClient is simple object for using ALUCID. It can be used for interaction
+ * between PHP web application and AIM.
  */
 class AlucidClient {
     protected $sender;
@@ -407,12 +464,14 @@ class AlucidClient {
 
     /**
      *
-     * Parameter $AIM is address of aim server. It can be DNS name, IP address or URL.
+     * Parameter $AIM is an address of aim server. It can be DNS name, IP address or URL.
      * Valid values are for example "aim.example.com", "10.0.0.42:8080" or
      * "https://aim.example.com:8443/AIM/services/R4".
      *
-     * Parameters authId and authKey are ALUCID credentials. If they are NULL, constructor
-     * attempts to fill them from $_REQUEST["authId"] and $_REQUEST["authKey"]
+     * Parameters authId, authKey, bindingId and bindingKey are ALUCID credentials.
+     * If they are NULL, constructor attempts to fill them from $_REQUEST["authId"],
+     * $_REQUEST["authKey"], $_REQUEST["bindingId"] and $_REQUEST["bindingKey"] (this
+     * is useful when AIMProxy is used).
      *
      * Parameter $AIMName is name of virtual AIM.
      *
@@ -439,6 +498,10 @@ class AlucidClient {
         }
         $this->AIMName = $AIMName;
     }
+    /**
+     * Method sets ALUCID credential from http request params.
+     * Method is called from constructor too.
+     */
     function setFromRequest() {
         if( isset($_REQUEST["authId"]) ) {
             if( $this->authId != $_REQUEST["authId"] ) {
@@ -465,12 +528,10 @@ class AlucidClient {
         }
     }
     /**
-     *
      * Method converts given aim address in form descripted in constructor
      * to uniform parts of URL. It returns array of three items - protocol,
      * host (eventually with portnumber) and location. For example
      * ( "http", "aim.example.com:8080", "AIM/services/R4" ).
-     *
      */
     private function normalizeR4URL($URL) {
         $protocol = "http";
@@ -490,10 +551,8 @@ class AlucidClient {
         return array( $protocol, $host, $location );
     }
     /**
-     *
      * Method stores ALUCID credentials into object properties,
      * if they are not NULL.
-     *
      */
     protected function saveCredentials($authId=NULL,$authKey=NULL,$bindingId=NULL,$bindingKey=NULL) {
         if($authId != NULL) {
@@ -543,61 +602,49 @@ class AlucidClient {
         return $this->authId;
     }
     /**
-     *
      * Method starts operation "open".
      *
      * Returns authId or NULL if it fails.
-     *
      */
     function open($peigReturnName=NULL) {
         return $this->requestOperation("open",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     *
      * Method starts operation "init".
      *
      * Returns authId or NULL if it fails.
-     *
      */
     function init($peigReturnName=NULL) {
         return $this->requestOperation("init",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     *
      * Method starts operation "change".
      *
      * Returns authId or NULL if it fails.
-     *
      */
     function change($peigReturnName=NULL) {
         return $this->requestOperation("change",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     *
      * Method starts operation "rechange".
      *
      * Returns authId or NULL if it fails.
-     *
      */
     function rechange($peigReturnName=NULL) {
         return $this->requestOperation("rechange",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     *
      * Method starts operation "delete".
      *
      * Returns authId or NULL if it fails.
-     *
      */
     function delete($peigReturnName=NULL) {
         return $this->requestOperation("delete",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     *
      * Method closes AIM session, created earlier (for example with method open()).
      *
      * Returns true if successfully closed.
-     *
      */
     function close() {
         $reply = $this->sender->callCloseSession(
@@ -616,10 +663,8 @@ class AlucidClient {
         return $closedSuccessfully;
     }
     /**
-     *
      * Method starts operation with Directory Personal Object, like reading personal
      * attributes.
-     *
      */
     function callDPO($method, $personalObject=NULL, $authId=NULL, $authKey=NULL) {
         $this->saveCredentials($authId,$authKey,$this->bindingId,$this->bindingKey);
@@ -635,11 +680,9 @@ class AlucidClient {
         );
     }
     /**
-     *
      * Method returns an array with results or status. The content
      * of the array depends on $attributeSetName and status of the
      * current operation.
-     *
      */
     public function getResult($attributeSetName=AlucidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
@@ -656,10 +699,8 @@ class AlucidClient {
                 );
     }
     /**
-     *
      * Method returns URL of current page. It tries detect ballancer and
      * provide right address wisible in browser.
-     *
      */
     private function currentURL() {
         if( isset($_SERVER["HTTP_X_FORWARDED_HOST"]) ) {
@@ -674,18 +715,14 @@ class AlucidClient {
         return $proto."://".$_SERVER['HTTP_HOST'].$_SERVER["REQUEST_URI"];
     }
     /**
-     *
      * Method returns URL of AIM proxy. It expects AIM proxy installend on AIM server.
      * Protocol for communication with AIM-proxy should be http.
-     *
      */
     private function AIMProxyURL() {
         return "http://". $this->AIM . "/AIM-proxy/";
     }
     /**
-     *
      * Method starts transfer of authId to PEIG.
-     *
      */
     function invokePeig($method = "REDIRECT", $parameters=NULL, $authId=NULL, $bindingId=NULL, $bindingKey=NULL) {
         if( $authId == NULL )     { $authId = $this->authId; }
@@ -708,10 +745,8 @@ class AlucidClient {
         throw new Exception("Method " . $method . " not implemented");
     }
     /**
-     *
      * Method returns user attributes. This method simplified
      * calling callDPO for READ operation.
-     *
      */
     function getAttributes($attributeSet="default") {
         $response = $this->callDPO(
@@ -726,10 +761,8 @@ class AlucidClient {
         return NULL;
     }
     /**
-     *
      * Method writes user attributes. This method simplified
      * calling callDPO for WRITE operation.
-     *
      */
     function setAttributes($attributeSet,$attributes) {
         $response = $this->callDPO(
@@ -742,9 +775,7 @@ class AlucidClient {
         return ( $response["statusAIM"] == "active" ) and ( $response["statusAuth"] == "OK" );
     }
     /**
-     *
      * Method returns userDatabaseIndex.
-     *
      */
     function getUserDatabaseIndex() {
         $result = $this->getResult(AlucidPSLAttributesSet::ALL);
@@ -756,9 +787,9 @@ class AlucidClient {
 /**
  *
  * AlucidSessionClient extends AlucidClient of few functionalities.
- * <li> handling authKey2
- * <li> using session for autofilling authId and authKey
- * <li> caching getResult replies
+ *   - handling authKey2
+ *   - using session for autofilling authId, authKey, bindingId and bindingKey
+ *   - caching getResult replies
  */
 class AlucidSessionClient extends AlucidClient {
     private $cache;
@@ -770,9 +801,18 @@ class AlucidSessionClient extends AlucidClient {
      * Valid values are for example "aim.example.com", "10.0.0.42:8080" or
      * "https://aim.example.com:8443/AIM/services/R4".
      *
-     * Parameters authId and authKey are ALUCID credentials. If they are NULL, constructor
-     * attempts to fill them from $_REQUEST["authId"] and $_REQUEST["authKey"]. If they are
-     * not set in $_REQUEST, $_SESSION["alucidAuthId"] and $_SESSION["alucidAuthKey"].
+     * Paramerer sessionPrefix is string used to distinguish between instances od AlucidSessionClient.
+     * In some cases you might need more instances of this object for one user (For example one
+     * instance for authentication and second for validating transaction). In such situation give
+     * different value to the instances. If the parameter is NULL, prefix "alucid" is used.
+     *
+     * Up to four items are saved in session -- AuthId, AuthKey, BindingId, BindingKey -- all with
+     * given prefix.
+     *
+     * Parameters authId authKey, bindingId and bindingKey are ALUCID credentials.
+     * If they are NULL, constructor attempts to fill them from $_SESSION.
+     * Parameters are also readed from $_SESSION when given paremater authId
+     * is equal to the authId stored in $_SESSION.
      *
      * Parameter $AIMName is name of virtual AIM.
      *
@@ -799,13 +839,26 @@ class AlucidSessionClient extends AlucidClient {
         }
         $this->saveCredentials($this->authId,$this->authKey,$this->bindingId,$this->bindingKey);
     }
+    /**
+     * \brief Sets ALUCID credentials from http request.
+     *
+     * AlucidSessionClient doesn't set ALUCID credentials from request automatically. This
+     * allows creating more independent instances of this object. If You need to set ALUCID
+     * credentials from http request, You can use this method.
+     *
+     * Example:
+     *     $ac1 = new AlucidSessionClient("http://aim.example.com");
+     *     $ac2 = new AlucidSessionClient("http://aim.example.com","second");
+     *     $ac2->setFromRequest();
+     */
     function setFromRequest() {
         parent::setFromRequest();
         $this->saveCredentials($this->authId,$this->authKey,$this->bindingId,$this->bindingKey);
     }
     /**
+     * \brief Save credentials into object properties and into session.
      *
-     * Method stores ALUCID credentials into object properties and $_SESSION,
+     * Method stores ALUCID credentials into object properties and $_SESSION
      * if they are not NULL.
      *
      */
@@ -835,12 +888,12 @@ class AlucidSessionClient extends AlucidClient {
         }
     }
     /**
+     * \brief Method closes AIM session.
      *
      * Method closes AIM session, created earlier (for example with method open())
      * and deletes credentials from $_SESSION.
      *
-     * Returns true if successfully closed.
-     *
+     * \return true if successfully closed.
      */
     function close() {
         $result = parent::close();
@@ -851,11 +904,20 @@ class AlucidSessionClient extends AlucidClient {
         return $result;
     }
     /**
+     * \brief Method checks the status of ALUCID operation.
+     * \param attributeSetName - name of requested set (default is AlucidPSLAttributesSet::ALL)
+     * \param authId - if NULL previously set value is used
+     * \param authKey - if NULL previously set value is used
+     * \param bindingId - if NULL previously set value is used
      *
      * Method returns an array with results or status. The content
      * of the array depends on $attributeSetName and status of the
-     * current operation. Result is cached for next call;
+     * current operation. Result is cached for next call.
      *
+     * Example:
+     *     $alucid = new AlucidSessionClient($GLOBALS["aim"]);
+     *     $alucid->setFromRequest();
+     *     $result = $alucid->getResult(AlucidPSLAttributesSet::ALL);
      */
     function getResult($attributeSetName=AlucidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
@@ -880,9 +942,19 @@ class AlucidSessionClient extends AlucidClient {
         return $this->cache[$attributeSetName];
     }
     /**
+     * \brief Checks the ALUCID authentication result.
+     * \return true if successfully authenticated.
      *
      * Method returns true, if authentication has been successfull.
      *
+     * Example:
+     *     $alucid = new AlucidSessionClient($GLOBALS["aim"]);
+     *     $alucid->setFromRequest();
+     *     if( $alucid->verify ) {
+     *         echo "OK\n";
+     *     } else {
+     *         echo "FAILED\n";
+     *     }
      */
     function verify() {
         $result = $this->getResult(AlucidPSLAttributesSet::ALL);
@@ -894,9 +966,9 @@ class AlucidSessionClient extends AlucidClient {
         return false;
     }
     /**
+     * \brief Cleans internal cache
      *
      * Method cleans the cache of getResult calls
-     *
      */
     function cleanCache() {
         $cache = array();
