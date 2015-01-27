@@ -1,7 +1,7 @@
 <?php
 
 
-include_once "alucidenums.php";
+include_once "aducidenums.php";
 
 /**
  * \brief Function returns sdk level.
@@ -11,7 +11,7 @@ include_once "alucidenums.php";
  *
  * Minor version (after decimal point) shows the API "features".
  */
-function alucidVersion() {
+function aducidVersion() {
     return 2.051;
 }
 
@@ -25,29 +25,29 @@ function alucidVersion() {
  *   - 3.0 - exception API 2.x is not compatible with 3.x
  *   - 2.03 - ok 2.051 >= 2.03
  */
-function alucidRequired($apilevel) {
-    if( floor($apilevel) != floor(alucidVersion()) ) {
+function aducidRequired($apilevel) {
+    if( floor($apilevel) != floor(aducidVersion()) ) {
         // Major version of API is different
         throw new Exception(
-            'Wrong major ALUCID API version (requested '.$apilevel.', installed '.alucidVersion().').'
+            'Wrong major ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').'
         );
     }
     // major is the same, lets compare
-    if( $apilevel > alucidVersion() ) {
+    if( $apilevel > aducidVersion() ) {
         throw new Exception(
-            'Wrong minor ALUCID API version (requested '.$apilevel.', installed '.alucidVersion().').'
+            'Wrong minor ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').'
         );
     }
     return true;
 }
 
 /**
- * \brief ALUCID R4 soap client
+ * \brief ADUCID R4 soap client
  *
- * AlucidMessageSender implements methods for accessing R4 interface.
- * It is used by AlucidClient and AlucidSessionClient.
+ * AducidMessageSender implements methods for accessing R4 interface.
+ * It is used by AducidClient and AducidSessionClient.
  */
-class AlucidMessageSender {
+class AducidMessageSender {
     /**
      * \brief SOAP request for getting PSL attributes
      *
@@ -55,7 +55,7 @@ class AlucidMessageSender {
      * \param request - array with different parameters
      * \return an array with PSL attributes
      *
-     * See ALUCID general documentation for deailed explanation.
+     * See ADUCID general documentation for deailed explanation.
      * Supported request parameters are:
      *   - authId
      *   - authKey
@@ -66,7 +66,7 @@ class AlucidMessageSender {
     function callGetPSLAttributes($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.alucid.anect.com",
+                    "uri"      => "http://iface.aducid.anect.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "exceptions" => true,
@@ -118,7 +118,7 @@ class AlucidMessageSender {
      * \param request - array with different parameters.
      * \return an array with newly created AIM session attributes.
      *
-     * See ALUCID general documentation for deailed explanation.
+     * See ADUCID general documentation for deailed explanation.
      * Supported request parameters are:
      *   - operationName
      *   - authId
@@ -134,7 +134,7 @@ class AlucidMessageSender {
     function callRequestOperation($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.alucid.anect.com",
+                    "uri"      => "http://iface.aducid.anect.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "exceptions" => true
@@ -195,7 +195,7 @@ class AlucidMessageSender {
     /**
      * \brief Closes the AIM session
      *
-     * See ALUCID general documentation for deailed explanation.
+     * See ADUCID general documentation for deailed explanation.
      * Supported request parameters are:
      *   - authId
      *   - AIMName
@@ -204,7 +204,7 @@ class AlucidMessageSender {
     function callCloseSession($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.alucid.anect.com",
+                    "uri"      => "http://iface.aducid.anect.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED
         ));
@@ -320,7 +320,7 @@ class AlucidMessageSender {
     private function readPersonalObject($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.alucid.anect.com",
+                    "uri"      => "http://iface.aducid.anect.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "trace"    => 1,
@@ -339,7 +339,7 @@ class AlucidMessageSender {
         if( isset($request["authKey"] ) && ($request["authKey"] != NULL) ) {
             array_push($params, new SoapParam($request["authKey"],"authKey") );
         };
-        array_push($params, new SoapParam(AlucidPersonalObjectMethod::READ,"methodName"));
+        array_push($params, new SoapParam(AducidPersonalObjectMethod::READ,"methodName"));
         $personalObject = $request["personalObject"];
         $pon = isset($personalObject["personalObjectName"])
             ? new SoapVar("<personalObject><personalObjectName>".$personalObject["personalObjectName"]."</personalObjectName></personalObject>",XSD_ANYXML)
@@ -371,7 +371,7 @@ class AlucidMessageSender {
         };
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.alucid.anect.com",
+                    "uri"      => "http://iface.aducid.anect.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "trace"    => 1,
@@ -387,8 +387,8 @@ class AlucidMessageSender {
         if( isset($request["authKey"] ) and ($request["authKey"] != NULL) ) {
             array_push($params,new SoapParam($request["authKey"],"authKey"));
         }
-        array_push($params,new SoapParam(AlucidPersonalObjectMethod::WRITE,"methodName"));
-        
+        array_push($params,new SoapParam(AducidPersonalObjectMethod::WRITE,"methodName"));
+
         $personalObject = $request["personalObject"];
         $xml="<personalObject>\n<personalObjectName>" . $personalObject["personalObjectName"] . "</personalObjectName>\n" ;
         while( list($key,$val) = each($personalObject["personalObject"]) ) {
@@ -434,9 +434,9 @@ class AlucidMessageSender {
         }
         $method = $request["methodName"];
         switch($method) {
-            case AlucidPersonalObjectMethod::READ:
+            case AducidPersonalObjectMethod::READ:
                 return $this->readPersonalObject($R4URL,$request);
-            case AlucidPersonalObjectMethod::WRITE:
+            case AducidPersonalObjectMethod::WRITE:
                 return $this->writePersonalObject($R4URL,$request);
             default:
                 throw new Exception('Method '.$method.' is not implemented');
@@ -446,12 +446,12 @@ class AlucidMessageSender {
 }
 
 /**
- * \brief AlucidClient class implements high-level API for using ALUCID.
+ * \brief AducidClient class implements high-level API for using ADUCID.
  *
- * AlucidClient is simple object for using ALUCID. It can be used for interaction
+ * AducidClient is simple object for using ADUCID. It can be used for interaction
  * between PHP web application and AIM.
  */
-class AlucidClient {
+class AducidClient {
     protected $sender;
     protected $AIM;
     protected $R4;
@@ -468,7 +468,7 @@ class AlucidClient {
      * Valid values are for example "aim.example.com", "10.0.0.42:8080" or
      * "https://aim.example.com:8443/AIM/services/R4".
      *
-     * Parameters authId, authKey, bindingId and bindingKey are ALUCID credentials.
+     * Parameters authId, authKey, bindingId and bindingKey are ADUCID credentials.
      * If they are NULL, constructor attempts to fill them from $_REQUEST["authId"],
      * $_REQUEST["authKey"], $_REQUEST["bindingId"] and $_REQUEST["bindingKey"] (this
      * is useful when AIMProxy is used).
@@ -486,7 +486,7 @@ class AlucidClient {
         $this->bindingId = NULL;
         $this->bindingKey = NULL;
 
-        $this->sender = new AlucidMessageSender();
+        $this->sender = new AducidMessageSender();
 
         $this->setFromRequest();
 
@@ -499,7 +499,7 @@ class AlucidClient {
         $this->AIMName = $AIMName;
     }
     /**
-     * Method sets ALUCID credential from http request params.
+     * Method sets ADUCID credential from http request params.
      * Method is called from constructor too.
      */
     function setFromRequest() {
@@ -551,7 +551,7 @@ class AlucidClient {
         return array( $protocol, $host, $location );
     }
     /**
-     * Method stores ALUCID credentials into object properties,
+     * Method stores ADUCID credentials into object properties,
      * if they are not NULL.
      */
     protected function saveCredentials($authId=NULL,$authKey=NULL,$bindingId=NULL,$bindingKey=NULL) {
@@ -684,7 +684,7 @@ class AlucidClient {
      * of the array depends on $attributeSetName and status of the
      * current operation.
      */
-    public function getResult($attributeSetName=AlucidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    public function getResult($attributeSetName=AducidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if( $bindingId != NULL ) { $this->bindingId = $bindingId; }
         return $this->sender->callGetPSLAttributes(
@@ -750,7 +750,7 @@ class AlucidClient {
      */
     function getAttributes($attributeSet="default") {
         $response = $this->callDPO(
-            AlucidPersonalObjectMethod::READ,
+            AducidPersonalObjectMethod::READ,
             array(
                 "personalObjectName" => $attributeSet
             )
@@ -766,7 +766,7 @@ class AlucidClient {
      */
     function setAttributes($attributeSet,$attributes) {
         $response = $this->callDPO(
-            AlucidPersonalObjectMethod::WRITE,
+            AducidPersonalObjectMethod::WRITE,
             array(
                 "personalObjectName" => $attributeSet,
                 "personalObject" => $attributes
@@ -778,7 +778,7 @@ class AlucidClient {
      * Method returns userDatabaseIndex.
      */
     function getUserDatabaseIndex() {
-        $result = $this->getResult(AlucidPSLAttributesSet::ALL);
+        $result = $this->getResult(AducidPSLAttributesSet::ALL);
         return isset($result["userDatabaseIndex"]) ? $result["userDatabaseIndex"] : NULL;
     }
 }
@@ -786,12 +786,12 @@ class AlucidClient {
 
 /**
  *
- * AlucidSessionClient extends AlucidClient of few functionalities.
+ * AducidSessionClient extends AducidClient of few functionalities.
  *   - handling authKey2
  *   - using session for autofilling authId, authKey, bindingId and bindingKey
  *   - caching getResult replies
  */
-class AlucidSessionClient extends AlucidClient {
+class AducidSessionClient extends AducidClient {
     private $cache;
     private $sessionPrefix;
 
@@ -801,15 +801,15 @@ class AlucidSessionClient extends AlucidClient {
      * Valid values are for example "aim.example.com", "10.0.0.42:8080" or
      * "https://aim.example.com:8443/AIM/services/R4".
      *
-     * Paramerer sessionPrefix is string used to distinguish between instances od AlucidSessionClient.
+     * Paramerer sessionPrefix is string used to distinguish between instances od AducidSessionClient.
      * In some cases you might need more instances of this object for one user (For example one
      * instance for authentication and second for validating transaction). In such situation give
-     * different value to the instances. If the parameter is NULL, prefix "alucid" is used.
+     * different value to the instances. If the parameter is NULL, prefix "aducid" is used.
      *
      * Up to four items are saved in session -- AuthId, AuthKey, BindingId, BindingKey -- all with
      * given prefix.
      *
-     * Parameters authId authKey, bindingId and bindingKey are ALUCID credentials.
+     * Parameters authId authKey, bindingId and bindingKey are ADUCID credentials.
      * If they are NULL, constructor attempts to fill them from $_SESSION.
      * Parameters are also readed from $_SESSION when given paremater authId
      * is equal to the authId stored in $_SESSION.
@@ -825,7 +825,7 @@ class AlucidSessionClient extends AlucidClient {
         $this->bindingId = $bindingId;
         $this->bindingKey = $bindingKey;
         $this->cleanCache();
-        $this->sessionPrefix = ( $sessionPrefix == NULL || $sessionPrefix == "" ) ? "alucid" : $sessionPrefix ;
+        $this->sessionPrefix = ( $sessionPrefix == NULL || $sessionPrefix == "" ) ? "aducid" : $sessionPrefix ;
         if( isset($_SESSION[ $this->sessionPrefix . "AuthId"] ) ) {
             // we have something in session
             if( ( $this->authId == NULL ) or ( $this->authId == $_SESSION[$this->sessionPrefix . "AuthId"] ) ) {
@@ -840,15 +840,15 @@ class AlucidSessionClient extends AlucidClient {
         $this->saveCredentials($this->authId,$this->authKey,$this->bindingId,$this->bindingKey);
     }
     /**
-     * \brief Sets ALUCID credentials from http request.
+     * \brief Sets ADUCID credentials from http request.
      *
-     * AlucidSessionClient doesn't set ALUCID credentials from request automatically. This
-     * allows creating more independent instances of this object. If You need to set ALUCID
+     * AducidSessionClient doesn't set ADUCID credentials from request automatically. This
+     * allows creating more independent instances of this object. If You need to set ADUCID
      * credentials from http request, You can use this method.
      *
      * Example:
-     *     $ac1 = new AlucidSessionClient("http://aim.example.com");
-     *     $ac2 = new AlucidSessionClient("http://aim.example.com","second");
+     *     $ac1 = new AducidSessionClient("http://aim.example.com");
+     *     $ac2 = new AducidSessionClient("http://aim.example.com","second");
      *     $ac2->setFromRequest();
      */
     function setFromRequest() {
@@ -858,7 +858,7 @@ class AlucidSessionClient extends AlucidClient {
     /**
      * \brief Save credentials into object properties and into session.
      *
-     * Method stores ALUCID credentials into object properties and $_SESSION
+     * Method stores ADUCID credentials into object properties and $_SESSION
      * if they are not NULL.
      *
      */
@@ -904,8 +904,8 @@ class AlucidSessionClient extends AlucidClient {
         return $result;
     }
     /**
-     * \brief Method checks the status of ALUCID operation.
-     * \param attributeSetName - name of requested set (default is AlucidPSLAttributesSet::ALL)
+     * \brief Method checks the status of ADUCID operation.
+     * \param attributeSetName - name of requested set (default is AducidPSLAttributesSet::ALL)
      * \param authId - if NULL previously set value is used
      * \param authKey - if NULL previously set value is used
      * \param bindingId - if NULL previously set value is used
@@ -915,11 +915,11 @@ class AlucidSessionClient extends AlucidClient {
      * current operation. Result is cached for next call.
      *
      * Example:
-     *     $alucid = new AlucidSessionClient($GLOBALS["aim"]);
-     *     $alucid->setFromRequest();
-     *     $result = $alucid->getResult(AlucidPSLAttributesSet::ALL);
+     *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
+     *     $aducid->setFromRequest();
+     *     $result = $aducid->getResult(AducidPSLAttributesSet::ALL);
      */
-    function getResult($attributeSetName=AlucidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    function getResult($attributeSetName=AducidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if($this->authId == NULL) { return NULL; }
         if($bindingId == NULL) { $bindingId = $this->bindingId; }
@@ -942,22 +942,22 @@ class AlucidSessionClient extends AlucidClient {
         return $this->cache[$attributeSetName];
     }
     /**
-     * \brief Checks the ALUCID authentication result.
+     * \brief Checks the ADUCID authentication result.
      * \return true if successfully authenticated.
      *
      * Method returns true, if authentication has been successfull.
      *
      * Example:
-     *     $alucid = new AlucidSessionClient($GLOBALS["aim"]);
-     *     $alucid->setFromRequest();
-     *     if( $alucid->verify ) {
+     *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
+     *     $aducid->setFromRequest();
+     *     if( $aducid->verify ) {
      *         echo "OK\n";
      *     } else {
      *         echo "FAILED\n";
      *     }
      */
     function verify() {
-        $result = $this->getResult(AlucidPSLAttributesSet::ALL);
+        $result = $this->getResult(AducidPSLAttributesSet::ALL);
         if( isset($result["statusAuth"]) and isset($result["statusAIM"]) ) {
             if( $result["statusAuth"] == "OK" and $result["statusAIM"] == "active" ) {
                 return true;

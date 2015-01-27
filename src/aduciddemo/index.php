@@ -1,10 +1,10 @@
 <?php
-include "alucid/alucid.php";
+include "aducid/aducid.php";
 
 $aim = "http://orangebox.example.com";
 $uim = "https://orangebox.example.com/UIM/";
 
-alucidRequire(2.0);
+aducidRequire(2.0);
 
 /**
  * returns session variable or "" if not present
@@ -37,8 +37,8 @@ function foot(){
 
 /**
  * this function is called on login attempt
- * it starts the ALUCID session if not yet started.
- * Otherways it checks the alucid result
+ * it starts the ADUCID session if not yet started.
+ * Otherways it checks the aducid result
  */
 function action_login() {
     $stage = 1;
@@ -46,19 +46,19 @@ function action_login() {
     if( $stage == 1 ) {
         // stage 1 - start authentication
         // we don't have authId, lets start authentication
-        $alucid = new AlucidSessionClient($GLOBALS['aim']);
-        $alucid->open("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
-        $alucid->invokePeig(
-            AlucidTransferMethod::REDIRECT,
+        $aducid = new AducidSessionClient($GLOBALS['aim']);
+        $aducid->open("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
+        $aducid->invokePeig(
+            AducidTransferMethod::REDIRECT,
             NULL
         );
     } else {
         // stage 2 - verify authentication
-        $alucid = new AlucidSessionClient($GLOBALS['aim']);
-        $alucid->setFromRequest();
-        if( $alucid->verify() ) {
+        $aducid = new AducidSessionClient($GLOBALS['aim']);
+        $aducid->setFromRequest();
+        if( $aducid->verify() ) {
             // authentication is ok, lets read user attributes
-            $attributes = $alucid->getAttributes();
+            $attributes = $aducid->getAttributes();
             if( $attributes != NULL ) {
                 // we are interested in email
                 if( isset($attributes["mail"]) ) {
@@ -67,16 +67,16 @@ function action_login() {
                 }
             }
             // udi is usefull
-            $_SESSION["udi"] = $alucid->getUserDatabaseIndex();
+            $_SESSION["udi"] = $aducid->getUserDatabaseIndex();
         }
     }
 }
 
 function action_change() {
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $alucid->change("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
-    $alucid->invokePeig(
-        AlucidTransferMethod::REDIRECT,
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->change("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
+    $aducid->invokePeig(
+        AducidTransferMethod::REDIRECT,
         NULL
     );
 }
@@ -85,10 +85,10 @@ function action_change() {
  * this function is called when identity rechange is requested.
  */
 function action_rechange() {
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $alucid->rechange("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
-    $alucid->invokePeig(
-        AlucidTransferMethod::REDIRECT,
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->rechange("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=login&stage=2");
+    $aducid->invokePeig(
+        AducidTransferMethod::REDIRECT,
         NULL
     );
 }
@@ -98,12 +98,12 @@ function action_rechange() {
  * email can contain more addresses separated by ","
  */
 function action_changeEmail() {
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
     $newEmail = isset($_GET["newemail"]) ? $_GET["newemail"] : "";
     if( $newEmail != "" ) {
         // New email is set, lets update information in AIM
         if(
-            $alucid->setAttributes(
+            $aducid->setAttributes(
                 "UIM",
                 array("mail" => explode(",",$newEmail), "cn" => "default cn", "sn" => "default sn" )
             )
@@ -118,8 +118,8 @@ function action_changeEmail() {
  * this function is called on logout
  */
 function action_logout(){
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $alucid->close();
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->close();
 
     unset($_SESSION["email"]);
     unset($_SESSION["udi"]);
@@ -129,10 +129,10 @@ function action_logout(){
  * this function is called when new identity should be created.
  */
 function action_create() {
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $alucid->init("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']);
-    $alucid->invokePeig(
-        AlucidTransferMethod::REDIRECT,
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->init("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']);
+    $aducid->invokePeig(
+        AducidTransferMethod::REDIRECT,
         NULL
     );
 }
@@ -144,10 +144,10 @@ function action_delete() {
     unset($_SESSION["email"]);
     unset($_SESSION["udi"]);
 
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $alucid->delete("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=logout");
-    $alucid->invokePeig(
-        AlucidTransferMethod::REDIRECT,
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->delete("http://".$_SERVER["HTTP_HOST"].$_SERVER['SCRIPT_NAME']."?action=logout");
+    $aducid->invokePeig(
+        AducidTransferMethod::REDIRECT,
         NULL
     );
 }
@@ -194,15 +194,15 @@ switch($action) {
 if(sessionvar("udi") == "") {
     // not logged in
     echo "<b>status: </b> not logged in<br/><hr>";
-    echo "<b>authId:</b> " . sessionvar("alucidAuthId") . "<br/>";
+    echo "<b>authId:</b> " . sessionvar("aducidAuthId") . "<br/>";
     echo "<hr />";
     echo '<form action="index.php"><input type="submit" value="login" /> <input type="hidden" name="action" value="login" /></form>';
 } else {
     // logged in
     echo "<b>status: </b> logged in<br/><br/>";
     echo "<hr/>";
-    echo "<b>authKey:</b> " . sessionvar("alucidAuthKey") . "<br>";
-    echo "<b>authId:</b> " . sessionvar("alucidAuthId") . "<br>";
+    echo "<b>authKey:</b> " . sessionvar("aducidAuthKey") . "<br>";
+    echo "<b>authId:</b> " . sessionvar("aducidAuthId") . "<br>";
     echo "<b>udi:</b> " . sessionvar("udi") . "<br>";
     echo "<b>email:</b> " . sessionvar("email") . "<br>";
     echo "<hr/>";
@@ -211,48 +211,48 @@ if(sessionvar("udi") == "") {
 }
 
 
-// handle ALUCID error codes
-if(sessionvar("alucidAuthId") != "") {
-    $alucid = new AlucidSessionClient($GLOBALS['aim']);
-    $result = $alucid->getResult();
+// handle ADUCID error codes
+if(sessionvar("aducidAuthId") != "") {
+    $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $result = $aducid->getResult();
     echo "<b>Status auth:</b> " ;
     print_r( $result );
     echo "<br>\n";
     switch ($result["statusAuth"]) {
-        case AlucidAuthStatus::OK:
+        case AducidAuthStatus::OK:
             // all is ok
-            echo '<hr>alucid login result is OK ';
+            echo '<hr>aducid login result is OK ';
             echo '<form action="index.php">'.
                  '<button type="submit" name="action" value="change">change identity</button><button type="submit" name="action" value="delete">delete identity</button></form><hr>';
             break;
-        case AlucidAuthStatus::UU:
+        case AducidAuthStatus::UU:
             //user unknown
             //create identity
             echo '<hr>identity problem - <a href="'.$GLOBALS['uim'].'/">do reinit on UIM</a><hr>';
             break;
-        case AlucidAuthStatus::UI:
+        case AducidAuthStatus::UI:
             // rechange needed
             echo '<hr>identity expired<hr>';
             echo '<form action="index.php"><input type="hidden" name="action" value="rechange">'.
                  '<input type="submit" value="rechange identity"></form><hr>';
             break;
-        case AlucidAuthStatus::NAU:
+        case AducidAuthStatus::NAU:
             // user refused authentiction
             echo '<hr>You refused authentication<hr>';
             break;
-        case AlucidAuthStatus::USP:
+        case AducidAuthStatus::USP:
             // new user = user doesn't have identity yet
             echo '<hr>You are not registered. Create Your identity on <a href="'.$GLOBALS['uim'].'/">UIM</a><hr>';
             break;
-        case AlucidAuthStatus::PPNP:
+        case AducidAuthStatus::PPNP:
             // peig is not available
             echo '<hr>Switch Your PEIG on, please<hr>';
             break;
-        case AlucidAuthStatus::STO:
+        case AducidAuthStatus::STO:
             // communication problem with peig proxy
             echo '<hr>Communication problem, please check peigproxy and network connectivity<hr>';
             break;
-        case AlucidAuthStatus::PTO:
+        case AducidAuthStatus::PTO:
             // authentication timeout
             echo '<hr>Authentication timeout, please buy better internet access<hr>';
             break;

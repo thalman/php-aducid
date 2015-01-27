@@ -1,0 +1,53 @@
+#!/bin/sh
+
+#
+# skript konvertuje priblizne java enum na php
+#
+function j2pconvert() {
+expand $1 | dos2unix | awk '
+BEGIN{
+    inside = 0;
+}
+/public +enum/{
+    class = $3;
+    inside = 1;
+    printf( "class Aducid%s {\n",class );
+}
+/[[:blank:]]*[A-Z0-9_]+[[:blank:]]*[,;].*/{
+   NAME=$1;
+   gsub(/[,;]+/,"", NAME);
+   printf("    const %s = \"%s\";\n", NAME, NAME );
+}
+/[[:blank:]]*[A-Z0-9_]\(.+\)+[[:blank:]]*[,;].*/{
+   NAME=$1;
+   VALUE=$1;
+   gsub(/\(.+$/,"",NAME);
+   gsub(/^.+\(/,"", VALUE);
+   gsub(/\).+$/,"", VALUE);
+   printf("    const %s = %s;\n", NAME, VALUE );
+}
+/[ \t]*(\/\*|*)/ {
+    i = index($0,"*");
+    ubrat = i - 5;
+    if( ubrat < 1 ) { ubrat = 1; };
+    comment = substr($0,ubrat);
+    print comment;
+}
+END{
+   print "}";
+}
+'
+}
+
+while [ "$1" != "" ] ; do
+    j2pconvert "$1"
+    shift
+done
+
+echo '
+class AducidTransferMethod {
+    /**
+     * Transfer authId to PEIG using redirect and AIM proxy
+     */
+    const REDIRECT = "REDIRECT";
+}'
