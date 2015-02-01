@@ -1,10 +1,10 @@
 <?php
 include "aducid/aducid.php";
 
-$aim = "http://orangebox.example.com";
-$uim = "https://orangebox.example.com/UIM/";
+$aim = "http://orange-d3.aducid.com";
+$uim = "https://orange-d3.aducid.com/UIM/";
 
-aducidRequire(2.0);
+aducidRequire(3.0);
 
 /**
  * returns session variable or "" if not present
@@ -247,14 +247,6 @@ if(sessionvar("aducidAuthId") != "") {
         case AducidAuthStatus::PPNP:
             // peig is not available
             echo '<hr>Switch Your PEIG on, please<hr>';
-            break;
-        case AducidAuthStatus::STO:
-            // communication problem with peig proxy
-            echo '<hr>Communication problem, please check peigproxy and network connectivity<hr>';
-            break;
-        case AducidAuthStatus::PTO:
-            // authentication timeout
-            echo '<hr>Authentication timeout, please buy better internet access<hr>';
             break;
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-
 include_once "aducidenums.php";
 
 /**
@@ -12,7 +11,7 @@ include_once "aducidenums.php";
  * Minor version (after decimal point) shows the API "features".
  */
 function aducidVersion() {
-    return 2.051;
+    return 3.000;
 }
 
 /**
@@ -25,7 +24,7 @@ function aducidVersion() {
  *   - 3.0 - exception API 2.x is not compatible with 3.x
  *   - 2.03 - ok 2.051 >= 2.03
  */
-function aducidRequired($apilevel) {
+function aducidRequire($apilevel) {
     if( floor($apilevel) != floor(aducidVersion()) ) {
         // Major version of API is different
         throw new Exception(
@@ -66,7 +65,7 @@ class AducidMessageSender {
     function callGetPSLAttributes($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.aducid.anect.com",
+                    "uri"      => "http://iface.aducid.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "exceptions" => true,
@@ -134,7 +133,7 @@ class AducidMessageSender {
     function callRequestOperation($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.aducid.anect.com",
+                    "uri"      => "http://iface.aducid.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "exceptions" => true
@@ -204,7 +203,7 @@ class AducidMessageSender {
     function callCloseSession($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.aducid.anect.com",
+                    "uri"      => "http://iface.aducid.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED
         ));
@@ -320,7 +319,7 @@ class AducidMessageSender {
     private function readPersonalObject($R4URL,$request) {
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.aducid.anect.com",
+                    "uri"      => "http://iface.aducid.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "trace"    => 1,
@@ -339,7 +338,7 @@ class AducidMessageSender {
         if( isset($request["authKey"] ) && ($request["authKey"] != NULL) ) {
             array_push($params, new SoapParam($request["authKey"],"authKey") );
         };
-        array_push($params, new SoapParam(AducidPersonalObjectMethod::READ,"methodName"));
+        array_push($params, new SoapParam(AducidMethodName::READ,"methodName"));
         $personalObject = $request["personalObject"];
         $pon = isset($personalObject["personalObjectName"])
             ? new SoapVar("<personalObject><personalObjectName>".$personalObject["personalObjectName"]."</personalObjectName></personalObject>",XSD_ANYXML)
@@ -371,7 +370,7 @@ class AducidMessageSender {
         };
         $soap = new SoapClient(NULL,
             array ( "location" => $R4URL,
-                    "uri"      => "http://iface.aducid.anect.com",
+                    "uri"      => "http://iface.aducid.com",
                     "style"    => SOAP_RPC,
                     "use"      => SOAP_ENCODED,
                     "trace"    => 1,
@@ -387,7 +386,7 @@ class AducidMessageSender {
         if( isset($request["authKey"] ) and ($request["authKey"] != NULL) ) {
             array_push($params,new SoapParam($request["authKey"],"authKey"));
         }
-        array_push($params,new SoapParam(AducidPersonalObjectMethod::WRITE,"methodName"));
+        array_push($params,new SoapParam(AducidMethodName::WRITE,"methodName"));
 
         $personalObject = $request["personalObject"];
         $xml="<personalObject>\n<personalObjectName>" . $personalObject["personalObjectName"] . "</personalObjectName>\n" ;
@@ -434,9 +433,9 @@ class AducidMessageSender {
         }
         $method = $request["methodName"];
         switch($method) {
-            case AducidPersonalObjectMethod::READ:
+            case AducidMethodName::READ:
                 return $this->readPersonalObject($R4URL,$request);
-            case AducidPersonalObjectMethod::WRITE:
+            case AducidMethodName::WRITE:
                 return $this->writePersonalObject($R4URL,$request);
             default:
                 throw new Exception('Method '.$method.' is not implemented');
@@ -684,7 +683,7 @@ class AducidClient {
      * of the array depends on $attributeSetName and status of the
      * current operation.
      */
-    public function getResult($attributeSetName=AducidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    public function getResult($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if( $bindingId != NULL ) { $this->bindingId = $bindingId; }
         return $this->sender->callGetPSLAttributes(
@@ -750,7 +749,7 @@ class AducidClient {
      */
     function getAttributes($attributeSet="default") {
         $response = $this->callDPO(
-            AducidPersonalObjectMethod::READ,
+            AducidMethodName::READ,
             array(
                 "personalObjectName" => $attributeSet
             )
@@ -766,7 +765,7 @@ class AducidClient {
      */
     function setAttributes($attributeSet,$attributes) {
         $response = $this->callDPO(
-            AducidPersonalObjectMethod::WRITE,
+            AducidMethodName::WRITE,
             array(
                 "personalObjectName" => $attributeSet,
                 "personalObject" => $attributes
@@ -778,7 +777,7 @@ class AducidClient {
      * Method returns userDatabaseIndex.
      */
     function getUserDatabaseIndex() {
-        $result = $this->getResult(AducidPSLAttributesSet::ALL);
+        $result = $this->getResult(AducidAttributeSetName::ALL);
         return isset($result["userDatabaseIndex"]) ? $result["userDatabaseIndex"] : NULL;
     }
 }
@@ -905,7 +904,7 @@ class AducidSessionClient extends AducidClient {
     }
     /**
      * \brief Method checks the status of ADUCID operation.
-     * \param attributeSetName - name of requested set (default is AducidPSLAttributesSet::ALL)
+     * \param attributeSetName - name of requested set (default is AducidAttributeSetName::ALL)
      * \param authId - if NULL previously set value is used
      * \param authKey - if NULL previously set value is used
      * \param bindingId - if NULL previously set value is used
@@ -917,9 +916,9 @@ class AducidSessionClient extends AducidClient {
      * Example:
      *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
      *     $aducid->setFromRequest();
-     *     $result = $aducid->getResult(AducidPSLAttributesSet::ALL);
+     *     $result = $aducid->getResult(AducidAttributeSetName::ALL);
      */
-    function getResult($attributeSetName=AducidPSLAttributesSet::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    function getResult($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if($this->authId == NULL) { return NULL; }
         if($bindingId == NULL) { $bindingId = $this->bindingId; }
@@ -957,7 +956,7 @@ class AducidSessionClient extends AducidClient {
      *     }
      */
     function verify() {
-        $result = $this->getResult(AducidPSLAttributesSet::ALL);
+        $result = $this->getResult(AducidAttributeSetName::ALL);
         if( isset($result["statusAuth"]) and isset($result["statusAIM"]) ) {
             if( $result["statusAuth"] == "OK" and $result["statusAIM"] == "active" ) {
                 return true;
