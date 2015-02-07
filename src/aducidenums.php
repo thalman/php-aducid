@@ -111,7 +111,7 @@ class AducidAlgorithmName {
     /**
      * Personal object representing PEIG management
      */
-    const PEIG_MGMT = "ADUCID###PEIG-MGMT";
+    const PEIG_MGMT = "ADUCID%23%23%23PEIG-MGMT";
     /**
      * Personal object representing payment
      */

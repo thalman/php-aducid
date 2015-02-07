@@ -1,4 +1,19 @@
 <?php
+/* 
+ * Copyright(c) 2012 ANECT a.s.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 include_once "aducidenums.php";
 
@@ -606,7 +621,7 @@ class AducidClient {
      * Returns authId or NULL if it fails.
      */
     function open($peigReturnName=NULL) {
-        return $this->requestOperation("open",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+        return $this->requestOperation(AducidOperationName::OPEN,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
      * Method starts operation "init".
@@ -614,7 +629,7 @@ class AducidClient {
      * Returns authId or NULL if it fails.
      */
     function init($peigReturnName=NULL) {
-        return $this->requestOperation("init",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+        return $this->requestOperation(AducidOperationName::INIT,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
      * Method starts operation "change".
@@ -622,7 +637,7 @@ class AducidClient {
      * Returns authId or NULL if it fails.
      */
     function change($peigReturnName=NULL) {
-        return $this->requestOperation("change",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+        return $this->requestOperation(AducidOperationName::CHANGE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
      * Method starts operation "rechange".
@@ -630,7 +645,7 @@ class AducidClient {
      * Returns authId or NULL if it fails.
      */
     function rechange($peigReturnName=NULL) {
-        return $this->requestOperation("rechange",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+        return $this->requestOperation(AducidOperationName::RECHANGE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
      * Method starts operation "delete".
@@ -638,7 +653,167 @@ class AducidClient {
      * Returns authId or NULL if it fails.
      */
     function delete($peigReturnName=NULL) {
-        return $this->requestOperation("delete",NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+        return $this->requestOperation(AducidOperationName::DELETE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+    }
+    /**
+     * Method starts operation "exuse".
+     *
+     * Returns authId or NULL if it fails.
+     */
+    function exuse($methodName,$methodParameters,$personalObject,$peigReturnName=NULL) {
+        return $this->requestOperation(AducidOperationName::EXUSE,$methodName, $methodParameters, $personalObject, NULL, NULL, $peigReturnName);
+    }
+    /**
+     * different exuse cases
+     */
+    function localFactorOperation($operation,$localFactorName,$useLocalFactor,$peigReturnURL=NULL) {
+        return $this->exuse(
+            $operation,
+            array( "UseLocalFactor" => $useLocalFactor),
+            array(
+                "personalObjectName"=> $localFactorName,
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL
+        );
+    }
+    function initLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->localFactorOperation(AducidMethodName::INIT,$localFactorName,"1",$peigReturnURL);
+    }
+    function changeLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->localFactorOperation(AducidMethodName::CHANGE,$localFactorName,"1",$peigReturnURL);
+    }
+    function deleteLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->localFactorOperation(AducidMethodName::DELETE,$localFactorName,"1",$peigReturnURL);
+    }
+    function verifyLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->localFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,"1",$peigReturnURL);
+    }
+    /**
+     * Payment
+     */
+    function paymentOperation($operation,$paymentName,$useLocalFactor,$peigReturnURL=NULL) {
+        return $this->exuse(
+            $operation,
+            array( "UseLocalFactor" => $useLocalFactor),
+            array(
+                "personalObjectName"=> $paymentName,
+                "personalObjectTypeName"=> "payment",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
+            ),
+            $peigReturnURL
+        );
+    }
+    function initPaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::INIT,$localFactorName,"1",$peigReturnURL);
+    }
+    function changePaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::CHANGE,$localFactorName,"1",$peigReturnURL);
+    }
+    function deletePaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::DELETE,$localFactorName,"1",$peigReturnURL);
+    }
+    function verifyPaymentFactor($localFactorName,$peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,"1",$peigReturnURL);
+    }
+    function confirmTextTransaction($text,$paymentName,$useLocalFactor) {
+        return $this->exuse(
+            AducidOperationName::CONFIRM_TRANSACTION,
+            array( "PaymentMessage" => $text, "UseLocalFactor" => $useLocalFactor),
+            array(
+                "personalObjectName"=> $paymentName,
+                "personalObjectTypeName"=> "payment",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
+            ),
+            $peigReturnURL
+        );
+    }
+    function confirmMoneyTransaction($from,$to,$amount,$paymentName,$useLocalFactor) {
+        return $this->exuse(
+            AducidOperationName::CONFIRM_TRANSACTION,
+            array(
+                "PaymentAmount" => $amount,
+                "PaymentFromAccount" => $from,
+                "PaymentToAccount" => $to,
+                "UseLocalFactor" => $useLocalFactor
+            ),
+            array(
+                "personalObjectName"=> $paymentName,
+                "personalObjectTypeName"=> "payment",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
+            ),
+            $peigReturnURL
+        );
+    }
+    function verifyTransaction() {
+        $transactionResult = array( "result" => false, "Return_Status" => NULL );
+        if( $this->verify() ) {
+            $result = $alucid->getResult(AlucidPSLAttributesSet::ALL);
+            $po = $result["personalObject"];
+            $poa = $po->personalObjectAttribute;
+            if( $poa["Return_Status"] == "ConfirmedByUser" ) {
+                $transactionResult["result"] = true;
+                // is local factor OK ?
+                if( isset( $poa["UseLocalFactor"] ) ) {
+                    $lf = $poa["UseLocalFactor"];
+                    if( ($lf[0] == 1) && ($lf[1] != "OK") ) {
+                        $transactionResult["result"] = false;
+                    }
+                }
+            }
+            if( $transactionResult["result"] ) {
+                foreach( array("Return_Status","PaymentSignature","PaymentMessage","PaymentAmount","PaymentFromAccount", "PaymentToAccount") as $key ) {
+                    if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
+                }
+            }
+        }
+        return $transactionResult;
+    }
+    /**
+     * rooms
+     */
+    function createRoomByName($name, $peigReturnURL=NULL) {
+        return $this->exuse(
+            AducidMethodName::CREATE_ROOM_BY_NAME,
+            array( "MeetingRoomName" => $name),
+            array(
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL
+        );
+    }
+    function enterRoomByName($name,  $peigReturnURL=NULL) {
+        return $this->exuse(
+            AducidMethodName::ENTER_ROOM_BY_NAME,
+            array( "MeetingRoomName" => $name),
+            array(
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL
+        );
+    }
+    function createRoomByStory($peigReturnURL=NULL) {
+        return $this->exuse(
+            AducidMethodName::CREATE_ROOM_BY_STORY,
+            NULL,
+            array(
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL);
+    }
+    function enterRoomByStory($peigReturnURL=NULL) {
+        return $this->exuse(
+            AducidMethodName::ENTER_ROOM_BY_STORY,
+            NULL,
+            array(
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL);
     }
     /**
      * Method closes AIM session, created earlier (for example with method open()).
@@ -649,9 +824,9 @@ class AducidClient {
         $reply = $this->sender->callCloseSession(
             $this->R4,
             array(
-                "AIMName"       => $this->AIMName,
-                "authId"        => $this->authId,
-                "authKey"        => $this->authKey
+                "AIMName" => $this->AIMName,
+                "authId"  => $this->authId,
+                "authKey" => $this->authKey
             )
         );
         $closedSuccessfully = ( $reply["statusAIM"] == "end" ) and ( $reply["statusAuth"] == "OK" );
@@ -723,12 +898,12 @@ class AducidClient {
     /**
      * Method starts transfer of authId to PEIG.
      */
-    function invokePeig($method = "REDIRECT", $parameters=NULL, $authId=NULL, $bindingId=NULL, $bindingKey=NULL) {
+    function invokePeig($method = AducidTransferMethod::REDIRECT, $parameters=NULL, $authId=NULL, $bindingId=NULL, $bindingKey=NULL) {
         if( $authId == NULL )     { $authId = $this->authId; }
         if( $bindingId == NULL )  { $bindingId = $this->bindingId; }
         if( $bindingKey == NULL ) { $bindingKey = $this->bindingKey; }
         if( $authId == NULL ) { throw new Exception("authId must be specified"); }
-        if( $method == "REDIRECT" ) {
+        if( $method == AducidTransferMethod::REDIRECT ) {
             //$returnURL = isset($parameters["returnURL"]) ? $parameters["returnURL"] : $this->currentURL();
             $AIMProxy  = isset($parameters["AIMProxy"])  ? $parameters["AIMProxy"]  : $this->AIMProxyURL();
             header(
@@ -736,7 +911,6 @@ class AducidClient {
                 "authId=" . urlencode($this->authId) .
                 ( ($bindingId != NULL) ? "&bindingId=". urlencode($bindingId) : "" ) .
                 ( ($bindingKey != NULL) ? "&bindingKey=".urlencode($bindingKey) : "" )
-                /* "&ReturnUrl=" . urlencode($returnURL) */
             );
             header('HTTP/1.0 302 Moved temporarily');
             exit;
