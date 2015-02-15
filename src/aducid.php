@@ -595,7 +595,7 @@ class AducidClient {
                 "personalObject"=> $personalObject,
                 "AAIM2"         => $AAIM2,
                 "ilData"        => $ilData,
-                "peigReturnName" => $peigReturnName
+                "peigReturnName" => ( $peigReturnName != NULL ? $peigReturnName : $this->currentURL() )
             )
         );
         $this->authId = NULL;
@@ -669,7 +669,7 @@ class AducidClient {
     function localFactorOperation($operation,$localFactorName,$useLocalFactor,$peigReturnURL=NULL) {
         return $this->exuse(
             $operation,
-            array( "UseLocalFactor" => $useLocalFactor),
+            array( "UseLocalFactor" => ( $useLocalFactor ? "1" : "0" ) ),
             array(
                 "personalObjectName"=> $localFactorName,
                 "personalObjectTypeName"=> "peigMgmt",
@@ -679,67 +679,72 @@ class AducidClient {
         );
     }
     function initLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::INIT,$localFactorName,"1",$peigReturnURL);
+        return $this->localFactorOperation(AducidMethodName::INIT,$localFactorName,true,$peigReturnURL);
     }
     function changeLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::CHANGE,$localFactorName,"1",$peigReturnURL);
+        return $this->localFactorOperation(AducidMethodName::CHANGE,$localFactorName,true,$peigReturnURL);
     }
     function deleteLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::DELETE,$localFactorName,"1",$peigReturnURL);
+        return $this->localFactorOperation(AducidMethodName::DELETE,$localFactorName,true,$peigReturnURL);
     }
     function verifyLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,"1",$peigReturnURL);
+        return $this->localFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,true,$peigReturnURL);
     }
     /**
      * Payment
      */
-    function paymentOperation($operation,$paymentName,$useLocalFactor,$peigReturnURL=NULL) {
+    function paymentOperation($operation,$useLocalFactor,$peigReturnURL=NULL) {
+        $methodParameters = array();
+        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
         return $this->exuse(
             $operation,
-            array( "UseLocalFactor" => $useLocalFactor),
+            $methodParameters,
             array(
-                "personalObjectName"=> $paymentName,
+                "personalObjectName"=> "payment",
                 "personalObjectTypeName"=> "payment",
                 "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
             ),
             $peigReturnURL
         );
     }
-    function initPaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::INIT,$localFactorName,"1",$peigReturnURL);
+    function initPaymentLocalFactor($peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::INIT,false,$peigReturnURL);
     }
-    function changePaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::CHANGE,$localFactorName,"1",$peigReturnURL);
+    function changePaymentLocalFactor($peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::CHANGE,true,$peigReturnURL);
     }
-    function deletePaymentLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::DELETE,$localFactorName,"1",$peigReturnURL);
+    function deletePaymentLocalFactor($peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::DELETE,true,$peigReturnURL);
     }
-    function verifyPaymentFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,"1",$peigReturnURL);
+    function verifyPaymentLocalFactor($peigReturnURL=NULL) {
+        return $this->paymentFactorOperation(AducidMethodName::VERIFY_LF,true,$peigReturnURL);
     }
-    function confirmTextTransaction($text,$paymentName,$useLocalFactor) {
+    function confirmTextTransaction($text,$useLocalFactor,$peigReturnURL=NULL) {
+        $methodParameters = array( "PaymentMessage" => urlencode($text) );
+        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
         return $this->exuse(
-            AducidOperationName::CONFIRM_TRANSACTION,
-            array( "PaymentMessage" => $text, "UseLocalFactor" => $useLocalFactor),
+            AducidMethodName::CONFIRM_TRANSACTION,
+            $methodParameters,
             array(
-                "personalObjectName"=> $paymentName,
+                "personalObjectName"=> "payment",
                 "personalObjectTypeName"=> "payment",
                 "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
             ),
             $peigReturnURL
         );
     }
-    function confirmMoneyTransaction($from,$to,$amount,$paymentName,$useLocalFactor) {
-        return $this->exuse(
-            AducidOperationName::CONFIRM_TRANSACTION,
-            array(
+    function confirmMoneyTransaction($from,$to,$amount,$useLocalFactor,$peigReturnURL=NULL) {
+        $methodParameters = array(
                 "PaymentAmount" => $amount,
                 "PaymentFromAccount" => $from,
-                "PaymentToAccount" => $to,
-                "UseLocalFactor" => $useLocalFactor
-            ),
+                "PaymentToAccount" => $to
+        );
+        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
+        return $this->exuse(
+            AducidMethodName::CONFIRM_TRANSACTION,
+            $methodParameters,
             array(
-                "personalObjectName"=> $paymentName,
+                "personalObjectName"=> "payment",
                 "personalObjectTypeName"=> "payment",
                 "personalObjectAlgorithmName"=> AducidAlgorithmName::PAYMENT
             ),
@@ -876,17 +881,19 @@ class AducidClient {
      * Method returns URL of current page. It tries detect ballancer and
      * provide right address wisible in browser.
      */
-    private function currentURL() {
+    function currentURL() {
+        $items = explode('?',$_SERVER["REQUEST_URI"],2);
+        $script = $items[0];
         if( isset($_SERVER["HTTP_X_FORWARDED_HOST"]) ) {
             //we are begind reverse proxy
             $proto = "http";
             if( isset($_SERVER["Front-End-Https"]) and ($_SERVER["Front-End-Https"] == "on" ) ) { $proto = "https"; }
             if( isset($_SERVER["X-Forwarded-Proto"]) and ($_SERVER["X-Forwarded-Proto"] == "https" ) ) { $proto = "https"; }
-            return $proto."://".$_SERVER["HTTP_X_FORWARDED_HOST"].$_SERVER["REQUEST_URI"];
+            return $proto."://".$_SERVER["HTTP_X_FORWARDED_HOST"].$script;
         }
         $proto = "http";
         if( isset($_SERVER["HTTPS"]) && ( $_SERVER["HTTPS"] == "on" ) ) { $proto = "https"; }
-        return $proto."://".$_SERVER['HTTP_HOST'].$_SERVER["REQUEST_URI"];
+        return $proto."://".$_SERVER['HTTP_HOST'].$script;
     }
     /**
      * Method returns URL of AIM proxy. It expects AIM proxy installend on AIM server.
