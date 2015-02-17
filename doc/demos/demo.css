@@ -24,5 +24,6 @@ body,html {
    border-right-color: #a0a0a0;
    border-left-style: dotted;
    border-left-color: #a0a0a0;
+   box-shadow: 5px 0px 3px #a0a0a0;
 }
 

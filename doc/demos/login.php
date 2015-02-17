@@ -68,31 +68,26 @@ session_start();
 
 $action = "none";
 if(isset($_REQUEST["action"]) ) { $action = $_REQUEST["action"]; }
-
+error_log("ACTION: ".$action );
 switch($action) {
 case "login":
-    // start alucid login
     $aducid = new AducidSessionClient($AIM);
     $aducid->open( AducidClient::currentURL() . "?action=verify" );
     $aducid->invokePeig();
     break;
 case "verify":
-    // verify result
     $aducid = new AducidSessionClient($AIM);
     $aducid->setFromRequest();
     if( $aducid->verify() ) {
-        // result is ok
         $_SESSION["udi"] = $aducid->getUserDatabaseIndex();
     } else {
-        // failed print login page with the error code
         $result = $aducid->getResult();
+        error_log(var_export($result,true));
         login_page($result["statusAuth"]);
         exit;
     }
     break;
 case "logout":
-    // close session on AIM is recommended,
-    // in fact You can close it as soon as You have no use for it.
     $aducid = new AducidSessionClient($AIM);
     $aducid->close();
     session_unset();
