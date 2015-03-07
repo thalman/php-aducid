@@ -666,29 +666,30 @@ class AducidClient {
     /**
      * different exuse cases
      */
-    function localFactorOperation($operation,$localFactorName,$useLocalFactor,$peigReturnURL=NULL) {
+    function localFactorManagementOperation($operation, $useLocalFactor, $peigReturnURL=NULL) {
+        $params = array();
+        if( $useLocalFactor ) { $params["UseLocalFactor"] = "1"; }
         return $this->exuse(
             $operation,
-            array( "UseLocalFactor" => ( $useLocalFactor ? "1" : "0" ) ),
+            $params,
             array(
-                "personalObjectName"=> $localFactorName,
                 "personalObjectTypeName"=> "peigMgmt",
                 "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
             ),
             $peigReturnURL
         );
     }
-    function initLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::INIT,$localFactorName,true,$peigReturnURL);
+    function initLocalFactor($peigReturnURL=NULL) {
+        return $this->localFactorManagementOperation(AducidMethodName::INIT, true, $peigReturnURL);
     }
-    function changeLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::CHANGE,$localFactorName,true,$peigReturnURL);
+    function changeLocalFactor($peigReturnURL=NULL) {
+        return $this->localFactorManagementOperation(AducidMethodName::CHANGE, true, $peigReturnURL);
     }
-    function deleteLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::DELETE,$localFactorName,true,$peigReturnURL);
+    function deleteLocalFactor($peigReturnURL=NULL) {
+        return $this->localFactorManagementOperation(AducidMethodName::DELETE, true, $peigReturnURL);
     }
     function verifyLocalFactor($localFactorName,$peigReturnURL=NULL) {
-        return $this->localFactorOperation(AducidMethodName::VERIFY_LF,$localFactorName,true,$peigReturnURL);
+        return $this->localFactorManagementOperation(AducidMethodName::VERIFY_LF, true, $peigReturnURL);
     }
     /**
      * Payment
@@ -707,17 +708,8 @@ class AducidClient {
             $peigReturnURL
         );
     }
-    function initPaymentLocalFactor($peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::INIT,false,$peigReturnURL);
-    }
-    function changePaymentLocalFactor($peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::CHANGE,true,$peigReturnURL);
-    }
-    function deletePaymentLocalFactor($peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::DELETE,true,$peigReturnURL);
-    }
-    function verifyPaymentLocalFactor($peigReturnURL=NULL) {
-        return $this->paymentFactorOperation(AducidMethodName::VERIFY_LF,true,$peigReturnURL);
+    function initPayment($useLocalFactor,$peigReturnURL=NULL) {
+        return $this->paymentOperation(AducidMethodName::INIT,$useLocalFactor,$peigReturnURL);
     }
     function confirmTextTransaction($text,$useLocalFactor,$peigReturnURL=NULL) {
         $methodParameters = array( "PaymentMessage" => urlencode($text) );
@@ -754,23 +746,23 @@ class AducidClient {
     function verifyTransaction() {
         $transactionResult = array( "result" => false, "Return_Status" => NULL );
         if( $this->verify() ) {
-            $result = $alucid->getResult(AlucidPSLAttributesSet::ALL);
+            $result = $this->getResult(AducidAttributeSetName::ALL);
             $po = $result["personalObject"];
             $poa = $po->personalObjectAttribute;
             if( $poa["Return_Status"] == "ConfirmedByUser" ) {
                 $transactionResult["result"] = true;
                 // is local factor OK ?
-                if( isset( $poa["UseLocalFactor"] ) ) {
-                    $lf = $poa["UseLocalFactor"];
-                    if( ($lf[0] == 1) && ($lf[1] != "OK") ) {
-                        $transactionResult["result"] = false;
-                    }
+                if( isset( $poa["UseLocalFactor"] ) && ($poa["UseLocalFactor"] != "OK") ) {
+                    $transactionResult["result"] = false;
                 }
             }
             if( $transactionResult["result"] ) {
-                foreach( array("Return_Status","PaymentSignature","PaymentMessage","PaymentAmount","PaymentFromAccount", "PaymentToAccount") as $key ) {
+                foreach( array("PaymentSignature","PaymentMessage","PaymentAmount","PaymentFromAccount", "PaymentToAccount") as $key ) {
                     if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
                 }
+            }
+            foreach( array("Return_Status", "UseLocalFactor") as $key ) {
+                if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
             }
         }
         return $transactionResult;
@@ -814,6 +806,33 @@ class AducidClient {
         return $this->exuse(
             AducidMethodName::ENTER_ROOM_BY_STORY,
             NULL,
+            array(
+                "personalObjectTypeName"=> "peigMgmt",
+                "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
+            ),
+            $peigReturnURL);
+    }
+    /**
+     * Peig Local Link
+     * \param $linkType can be one of "PrimaryReplica", "SecondaryReplica" or "ConnectionUSB"
+     */
+    function peigLocalLink($linkType,$peigReturnURL=NULL) {
+        $params = array();
+        switch( strtolower($linkType) ) {
+        case "primaryreplica":
+            $params["PrimaryReplica"] = 1;
+            break;
+        case "secondaryreplica":
+            $params["SecondaryReplica"] = 1;
+            break;
+        case "connectionusb":
+            $params["Connection"] = "Usb";
+            break;
+        }
+        if( ! count( $params ) ) { return NULL; }
+        return $this->exuse(
+            AducidMethodName::PEIG_LOCAL_LINK,
+            $params,
             array(
                 "personalObjectTypeName"=> "peigMgmt",
                 "personalObjectAlgorithmName"=> AducidAlgorithmName::PEIG_MGMT
