@@ -12,8 +12,10 @@ Installation
 2. Install ADUCID PHP SDK on this webserver, including dependecies ( php >= 5.1.0, php-soap, php-xml ).
 3. Install ADUCID AIM server.
 4. Copy this application under your DOCUMENT_ROOT
->  mkdir /var/www/html/demo
->  cp -R * /var/www/html/demo/
+
+        mkdir /var/www/html/demo
+        cp -R * /var/www/html/demo/
+
 5. Make sure that webserver can read those files.
 6. Edit the config.php file and set AIM address.
 7. Access the application in Your browser ( http://your.server/demo/ )
