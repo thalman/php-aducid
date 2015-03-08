@@ -513,8 +513,8 @@ class AducidClient {
         $this->AIMName = $AIMName;
     }
     /**
-     * Method sets ADUCID credential from http request params.
-     * Method is called from constructor too.
+     * \brief Method sets ADUCID credential from http request params.
+     *        Method is called from constructor too.
      */
     function setFromRequest() {
         if( isset($_REQUEST["authId"]) ) {
@@ -542,10 +542,14 @@ class AducidClient {
         }
     }
     /**
+     * \brief normalize R4 URL
+     *
      * Method converts given aim address in form descripted in constructor
      * to uniform parts of URL. It returns array of three items - protocol,
      * host (eventually with portnumber) and location. For example
      * ( "http", "aim.example.com:8080", "AIM/services/R4" ).
+     *
+     * \param string, url or hostname of AIM
      */
     private function normalizeR4URL($URL) {
         $protocol = "http";
@@ -565,8 +569,8 @@ class AducidClient {
         return array( $protocol, $host, $location );
     }
     /**
-     * Method stores ADUCID credentials into object properties,
-     * if they are not NULL.
+     * \brief Method stores ADUCID credentials into object properties,
+     *        if they are not NULL.
      */
     protected function saveCredentials($authId=NULL,$authKey=NULL,$bindingId=NULL,$bindingKey=NULL) {
         if($authId != NULL) {
@@ -578,10 +582,16 @@ class AducidClient {
     }
     /**
      *
-     * Method starts AIM session for requested operation like "open"
+     * \brief Method starts AIM session for requested operation like "open"
      *
-     * Returns authId or NULL if it fails.
-     *
+     * \param string, operation name
+     * \param string, method name
+     * \param string, method parameter
+     * \param array, personal object
+     * \param string, secondary AIM
+     * \param string, identity link data
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function requestOperation($operation, $methodName=NULL, $methodParameter=NULL, $personalObject=NULL, $AAIM2=NULL, $ilData=NULL, $peigReturnName=NULL ) {
         $reply = $this->sender->callRequestOperation(
@@ -616,57 +626,68 @@ class AducidClient {
         return $this->authId;
     }
     /**
-     * Method starts operation "open".
+     * \brief method starts operation "open".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function open($peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::OPEN,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     * Method starts operation "init".
+     * \brief method starts operation "init".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function init($peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::INIT,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     * Method starts operation "change".
+     * \brief method starts operation "change".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function change($peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::CHANGE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     * Method starts operation "rechange".
+     * \brief method starts operation "rechange".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId or NULL if it fails.
      */
     function rechange($peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::RECHANGE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     * Method starts operation "delete".
+     * \brief method starts operation "delete".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function delete($peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::DELETE,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
-     * Method starts operation "exuse".
+     * \brief method starts operation "exuse".
      *
-     * Returns authId or NULL if it fails.
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
      */
     function exuse($methodName,$methodParameters,$personalObject,$peigReturnName=NULL) {
         return $this->requestOperation(AducidOperationName::EXUSE,$methodName, $methodParameters, $personalObject, NULL, NULL, $peigReturnName);
     }
     /**
-     * different exuse cases
+     * \brief internal function for starting local factor operations.
+     *
+     * \param string, operation (see AducidMethodName)
+     * \param boolean, use local factor (or don't)
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
      */
-    function localFactorManagementOperation($operation, $useLocalFactor, $peigReturnURL=NULL) {
+    protected function localFactorManagementOperation($operation, $useLocalFactor, $peigReturnURL=NULL) {
         $params = array();
         if( $useLocalFactor ) { $params["UseLocalFactor"] = "1"; }
         return $this->exuse(
@@ -679,22 +700,51 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief function allows user to set local factor
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
+     */
     function initLocalFactor($peigReturnURL=NULL) {
         return $this->localFactorManagementOperation(AducidMethodName::INIT, true, $peigReturnURL);
     }
+    /**
+     * \brief function allows user to change local factor
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
+     */
     function changeLocalFactor($peigReturnURL=NULL) {
         return $this->localFactorManagementOperation(AducidMethodName::CHANGE, true, $peigReturnURL);
     }
+    /**
+     * \brief function allows user delete local factor
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail
+     */
     function deleteLocalFactor($peigReturnURL=NULL) {
         return $this->localFactorManagementOperation(AducidMethodName::DELETE, true, $peigReturnURL);
     }
-    function verifyLocalFactor($localFactorName,$peigReturnURL=NULL) {
+    /**
+     * \brief function allows local factor to be checked
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail
+     */
+    function verifyLocalFactor($peigReturnURL=NULL) {
         return $this->localFactorManagementOperation(AducidMethodName::VERIFY_LF, true, $peigReturnURL);
     }
     /**
-     * Payment
+     * \brief Internal function for payment/transaction operations.
+     *
+     * \param string, operation (see AducidMethodName)
+     * \param boolean, use local factor (or don't)
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail
      */
-    function paymentOperation($operation,$useLocalFactor,$peigReturnURL=NULL) {
+    protected function paymentOperation($operation,$useLocalFactor,$peigReturnURL=NULL) {
         $methodParameters = array();
         if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
         return $this->exuse(
@@ -708,9 +758,25 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief initPayment ?
+     *
+     * \param boolean, use local factor (or don't)
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail
+     */
     function initPayment($useLocalFactor,$peigReturnURL=NULL) {
         return $this->paymentOperation(AducidMethodName::INIT,$useLocalFactor,$peigReturnURL);
     }
+    /**
+     * \brief function starts the text transaction operation.
+     *
+     * \param string, text for confirmation
+     * \param boolean, use local factor for confirmation
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     *
+     * \return authId of started operation or NULL if fail     
+     */
     function confirmTextTransaction($text,$useLocalFactor,$peigReturnURL=NULL) {
         $methodParameters = array( "PaymentMessage" => urlencode($text) );
         if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
@@ -725,6 +791,16 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief function starts the money transaction operation.
+     *
+     * \param string, account to send money from
+     * \param string, account to send money to
+     * \param string, amount
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     *
+     * \return authId of started operation or NULL if fail     
+     */
     function confirmMoneyTransaction($from,$to,$amount,$useLocalFactor,$peigReturnURL=NULL) {
         $methodParameters = array(
                 "PaymentAmount" => $amount,
@@ -743,6 +819,15 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief function verifies the transaction result
+     *
+     * \return array with transaction result. Key array item is "result".
+     *         "result" is boolean and it is set to true if transaction succedes.
+     *         "Return_Status" contains text reason of success/fail
+     *         "PaymentSignature" transaction signature
+     *         "PaymentMessage" transaction message
+     */
     function verifyTransaction() {
         $transactionResult = array( "result" => false, "Return_Status" => NULL );
         if( $this->verify() ) {
@@ -768,7 +853,11 @@ class AducidClient {
         return $transactionResult;
     }
     /**
-     * rooms
+     * \brief Create room for peig familization.
+     *
+     * \param string, room name
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail     
      */
     function createRoomByName($name, $peigReturnURL=NULL) {
         return $this->exuse(
@@ -781,6 +870,13 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief enter room for peig familization.
+     *
+     * \param string, room name
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return authId of started operation or NULL if fail     
+     */
     function enterRoomByName($name,  $peigReturnURL=NULL) {
         return $this->exuse(
             AducidMethodName::ENTER_ROOM_BY_NAME,
@@ -792,6 +888,12 @@ class AducidClient {
             $peigReturnURL
         );
     }
+    /**
+     * \brief Create room for peig familization with picture sequence.
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
+     */
     function createRoomByStory($peigReturnURL=NULL) {
         return $this->exuse(
             AducidMethodName::CREATE_ROOM_BY_STORY,
@@ -802,6 +904,12 @@ class AducidClient {
             ),
             $peigReturnURL);
     }
+    /**
+     * \brief Enter room for peig familization with picture sequence.
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
+     */
     function enterRoomByStory($peigReturnURL=NULL) {
         return $this->exuse(
             AducidMethodName::ENTER_ROOM_BY_STORY,
@@ -813,8 +921,11 @@ class AducidClient {
             $peigReturnURL);
     }
     /**
-     * Peig Local Link
-     * \param $linkType can be one of "PrimaryReplica", "SecondaryReplica" or "ConnectionUSB"
+     * \brief starts operation for identity replication between two PEIGs
+     *
+     * \param string, can be one of "PrimaryReplica", "SecondaryReplica" or "ConnectionUSB"
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId of started operation or NULL if fail
      */
     function peigLocalLink($linkType,$peigReturnURL=NULL) {
         $params = array();
@@ -840,9 +951,9 @@ class AducidClient {
             $peigReturnURL);
     }
     /**
-     * Method closes AIM session, created earlier (for example with method open()).
+     * \brief Method closes AIM session, created earlier (for example with method open()).
      *
-     * Returns true if successfully closed.
+     * \return true if successfully closed.
      */
     function close() {
         $reply = $this->sender->callCloseSession(
@@ -861,8 +972,13 @@ class AducidClient {
         return $closedSuccessfully;
     }
     /**
-     * Method starts operation with Directory Personal Object, like reading personal
-     * attributes.
+     * \brief Method starts operation with Directory Personal Object, like reading personal
+     *        attributes.
+     *
+     * \param string, method, see AducidMethodName
+     * \param array, personal object
+     * \param string, authId
+     * \param string, authKey
      */
     function callDPO($method, $personalObject=NULL, $authId=NULL, $authKey=NULL) {
         $this->saveCredentials($authId,$authKey,$this->bindingId,$this->bindingKey);
@@ -878,9 +994,15 @@ class AducidClient {
         );
     }
     /**
-     * Method returns an array with results or status. The content
-     * of the array depends on $attributeSetName and status of the
-     * current operation.
+     * \brief Method returns an array with results or status. The content
+     *        of the array depends on $attributeSetName and status of the
+     *        current operation.
+     *
+     * \param AducidAttributeSetName, set name
+     * \param string, authId
+     * \param string, authKey
+     * \param string, bindingId
+     * \return array, attribute set
      */
     public function getResult($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
@@ -897,8 +1019,11 @@ class AducidClient {
                 );
     }
     /**
-     * Method returns URL of current page. It tries detect ballancer and
-     * provide right address wisible in browser.
+     * \brief Method returns URL of current page. It tries detect ballancer and
+     *        provide right address visible in browser. This method can be called
+     *        in static fashion AducidClient::currentURL().
+     *
+     * \return string, url of running script
      */
     function currentURL() {
         $items = explode('?',$_SERVER["REQUEST_URI"],2);
@@ -915,14 +1040,20 @@ class AducidClient {
         return $proto."://".$_SERVER['HTTP_HOST'].$script;
     }
     /**
-     * Method returns URL of AIM proxy. It expects AIM proxy installend on AIM server.
-     * Protocol for communication with AIM-proxy should be http.
+     * \brief Method returns URL of AIM proxy. It expects AIM proxy installend on AIM server.
+     *        Protocol for communication with AIM-proxy should be http.
+     *
+     * \return string, AIM proxy URL
      */
     private function AIMProxyURL() {
         return "http://". $this->AIM . "/AIM-proxy/";
     }
     /**
-     * Method starts transfer of authId to PEIG.
+     * \brief Method starts transfer of authId to PEIG.
+     *
+     * Only REDIRECT method is implemented. Usually You can call this method without any
+     * parameters (the defaults are ok). Calling this function causes redirect and the php
+     * script doesn't continue.
      */
     function invokePeig($method = AducidTransferMethod::REDIRECT, $parameters=NULL, $authId=NULL, $bindingId=NULL, $bindingKey=NULL) {
         if( $authId == NULL )     { $authId = $this->authId; }
@@ -944,8 +1075,11 @@ class AducidClient {
         throw new Exception("Method " . $method . " not implemented");
     }
     /**
-     * Method returns user attributes. This method simplified
-     * calling callDPO for READ operation.
+     * \brief Method returns user attributes. This method simplified
+     *        calling callDPO for READ operation.
+     *
+     * \param string, attribute set name
+     * \return array, attribute set
      */
     function getAttributes($attributeSet="default") {
         $response = $this->callDPO(
@@ -960,8 +1094,11 @@ class AducidClient {
         return NULL;
     }
     /**
-     * Method writes user attributes. This method simplified
-     * calling callDPO for WRITE operation.
+     * \brief Method writes user attributes. This method simplified
+     *        calling callDPO for WRITE operation.
+     *
+     * \param string, attribute set name
+     * \param array, attributes to be set
      */
     function setAttributes($attributeSet,$attributes) {
         $response = $this->callDPO(
@@ -974,7 +1111,9 @@ class AducidClient {
         return ( $response["statusAIM"] == "active" ) and ( $response["statusAuth"] == "OK" );
     }
     /**
-     * Method returns userDatabaseIndex.
+     * \brief Method returns userDatabaseIndex.
+     *
+     * \return string, user identifier
      */
     function getUserDatabaseIndex() {
         $result = $this->getResult(AducidAttributeSetName::ALL);
