@@ -17,8 +17,7 @@
  */
 
 include_once "aducid/aducid.php";
-
-$AIM = "http://android.alucid.eu/";
+include_once "config.php";
 
 // check the SDK version
 try {
@@ -43,8 +42,6 @@ function logged_in_page() {
 }
 
 function login_page($error="") {
-    global $AIM;
-    
     echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" .
         "<html>\n".
         "<head><title>login demo</title><link rel=\"stylesheet\" type=\"text/css\" href=\"demo.css\"></head>\n" .
@@ -52,7 +49,7 @@ function login_page($error="") {
         "<h1>ADUCID login demo</h1>\n".
         "<p>This demo application shows how to login and logout with ADUCID. ".
         "Demo presumes, that You have PEIG and valid identity created on ".
-        "<a href=\"".$AIM."UIM/\">AIM</a>.</p>";
+        "<a href=\"".$GLOBALS["aim"]."UIM/\">AIM</a>.</p>";
     if($error != "") {
         echo "<p>Login failed with error code <b>". $error . "</b>!</p>";
     }
@@ -71,12 +68,12 @@ if(isset($_REQUEST["action"]) ) { $action = $_REQUEST["action"]; }
 error_log("ACTION: ".$action );
 switch($action) {
 case "login":
-    $aducid = new AducidSessionClient($AIM);
+    $aducid = new AducidSessionClient($GLOBALS["aim"]);
     $aducid->open( AducidClient::currentURL() . "?action=verify" );
     $aducid->invokePeig();
     break;
 case "verify":
-    $aducid = new AducidSessionClient($AIM);
+    $aducid = new AducidSessionClient($GLOBALS["aim"]);
     $aducid->setFromRequest();
     if( $aducid->verify() ) {
         $_SESSION["udi"] = $aducid->getUserDatabaseIndex();
@@ -88,7 +85,7 @@ case "verify":
     }
     break;
 case "logout":
-    $aducid = new AducidSessionClient($AIM);
+    $aducid = new AducidSessionClient($GLOBALS["aim"]);
     $aducid->close();
     session_unset();
 }
