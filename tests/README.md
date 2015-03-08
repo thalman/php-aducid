@@ -13,10 +13,10 @@ Installation
 3. Install ADUCID AIM server.
 4. Copy this application under your DOCUMENT_ROOT
 
-        mkdir /var/www/html/demo
-        cp -R * /var/www/html/demo/
+        mkdir /var/www/html/testing-application
+        cp -R * /var/www/html/testing-application
 
 5. Make sure that webserver can read those files.
 6. Edit the config.php file and set AIM address.
-7. Access the application in Your browser ( http://your.server/demo/ )
+7. Access the application in Your browser ( http://your.server/testing-application/ )
 
