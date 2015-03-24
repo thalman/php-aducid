@@ -644,6 +644,15 @@ class AducidClient {
         return $this->requestOperation(AducidOperationName::INIT,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
     }
     /**
+     * \brief method starts operation "reinit".
+     *
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
+     */
+    function reinit($peigReturnName=NULL) {
+        return $this->requestOperation(AducidOperationName::REINIT,NULL, NULL, NULL, NULL, NULL, $peigReturnName);
+    }
+    /**
      * \brief method starts operation "change".
      *
      * \param string, URL where AIMProxy should redirect browser when operation completed
@@ -680,16 +689,16 @@ class AducidClient {
         return $this->requestOperation(AducidOperationName::EXUSE,$methodName, $methodParameters, $personalObject, NULL, NULL, $peigReturnName);
     }
     /**
-     * \brief internal function for starting local factor operations.
+     * \brief internal function for starting personal factor operations.
      *
      * \param string, operation (see AducidMethodName)
-     * \param boolean, use local factor (or don't)
+     * \param boolean, use personal factor (or don't)
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return string, authId of started operation or NULL if fail
      */
-    protected function localFactorManagementOperation($operation, $useLocalFactor, $peigReturnURL=NULL) {
+    protected function personalFactorManagementOperation($operation, $usePersonalFactor, $peigReturnURL=NULL) {
         $params = array();
-        if( $useLocalFactor ) { $params["UseLocalFactor"] = "1"; }
+        if( $usePersonalFactor ) { $params["UsePersonalFactor"] = "1"; }
         return $this->exuse(
             $operation,
             $params,
@@ -701,52 +710,52 @@ class AducidClient {
         );
     }
     /**
-     * \brief function allows user to set local factor
+     * \brief function allows user to set personal factor
      *
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return string, authId of started operation or NULL if fail
      */
-    function initLocalFactor($peigReturnURL=NULL) {
-        return $this->localFactorManagementOperation(AducidMethodName::INIT, true, $peigReturnURL);
+    function initPersonalFactor($peigReturnURL=NULL) {
+        return $this->personalFactorManagementOperation(AducidMethodName::INIT, true, $peigReturnURL);
     }
     /**
-     * \brief function allows user to change local factor
+     * \brief function allows user to change personal factor
      *
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return string, authId of started operation or NULL if fail
      */
-    function changeLocalFactor($peigReturnURL=NULL) {
-        return $this->localFactorManagementOperation(AducidMethodName::CHANGE, true, $peigReturnURL);
+    function changePersonalFactor($peigReturnURL=NULL) {
+        return $this->personalFactorManagementOperation(AducidMethodName::CHANGE, true, $peigReturnURL);
     }
     /**
-     * \brief function allows user delete local factor
+     * \brief function allows user delete personal factor
      *
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return authId of started operation or NULL if fail
      */
-    function deleteLocalFactor($peigReturnURL=NULL) {
-        return $this->localFactorManagementOperation(AducidMethodName::DELETE, true, $peigReturnURL);
+    function deletePersonalFactor($peigReturnURL=NULL) {
+        return $this->personalFactorManagementOperation(AducidMethodName::DELETE, true, $peigReturnURL);
     }
     /**
-     * \brief function allows local factor to be checked
+     * \brief function allows personal factor to be checked
      *
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return authId of started operation or NULL if fail
      */
-    function verifyLocalFactor($peigReturnURL=NULL) {
-        return $this->localFactorManagementOperation(AducidMethodName::VERIFY_LF, true, $peigReturnURL);
+    function verifyPersonalFactor($peigReturnURL=NULL) {
+        return $this->personalFactorManagementOperation(AducidMethodName::VERIFY_LF, true, $peigReturnURL);
     }
     /**
      * \brief Internal function for payment/transaction operations.
      *
      * \param string, operation (see AducidMethodName)
-     * \param boolean, use local factor (or don't)
+     * \param boolean, use personal factor (or don't)
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return authId of started operation or NULL if fail
      */
-    protected function paymentOperation($operation,$useLocalFactor,$peigReturnURL=NULL) {
+    protected function paymentOperation($operation,$usePersonalFactor,$peigReturnURL=NULL) {
         $methodParameters = array();
-        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
+        if($usePersonalFactor) { $methodParameters["UsePersonalFactor"] = "1"; }
         return $this->exuse(
             $operation,
             $methodParameters,
@@ -761,25 +770,25 @@ class AducidClient {
     /**
      * \brief initPayment ?
      *
-     * \param boolean, use local factor (or don't)
+     * \param boolean, use personal factor (or don't)
      * \param string, URL where AIMProxy should redirect browser when operation completed
      * \return authId of started operation or NULL if fail
      */
-    function initPayment($useLocalFactor,$peigReturnURL=NULL) {
-        return $this->paymentOperation(AducidMethodName::INIT,$useLocalFactor,$peigReturnURL);
+    function initPayment($usePersonalFactor,$peigReturnURL=NULL) {
+        return $this->paymentOperation(AducidMethodName::INIT,$usePersonalFactor,$peigReturnURL);
     }
     /**
      * \brief function starts the text transaction operation.
      *
      * \param string, text for confirmation
-     * \param boolean, use local factor for confirmation
+     * \param boolean, use personal factor for confirmation
      * \param string, URL where AIMProxy should redirect browser when operation completed
      *
      * \return authId of started operation or NULL if fail     
      */
-    function confirmTextTransaction($text,$useLocalFactor,$peigReturnURL=NULL) {
+    function confirmTextTransaction($text,$usePersonalFactor,$peigReturnURL=NULL) {
         $methodParameters = array( "PaymentMessage" => urlencode($text) );
-        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
+        if($usePersonalFactor) { $methodParameters["UsePersonalFactor"] = "1"; }
         return $this->exuse(
             AducidMethodName::CONFIRM_TRANSACTION,
             $methodParameters,
@@ -801,13 +810,13 @@ class AducidClient {
      *
      * \return authId of started operation or NULL if fail     
      */
-    function confirmMoneyTransaction($from,$to,$amount,$useLocalFactor,$peigReturnURL=NULL) {
+    function confirmMoneyTransaction($from,$to,$amount,$usePersonalFactor,$peigReturnURL=NULL) {
         $methodParameters = array(
                 "PaymentAmount" => $amount,
                 "PaymentFromAccount" => $from,
                 "PaymentToAccount" => $to
         );
-        if($useLocalFactor) { $methodParameters["UseLocalFactor"] = "1"; }
+        if($usePersonalFactor) { $methodParameters["UsePersonalFactor"] = "1"; }
         return $this->exuse(
             AducidMethodName::CONFIRM_TRANSACTION,
             $methodParameters,
@@ -836,8 +845,8 @@ class AducidClient {
             $poa = $po->personalObjectAttribute;
             if( $poa["Return_Status"] == "ConfirmedByUser" ) {
                 $transactionResult["result"] = true;
-                // is local factor OK ?
-                if( isset( $poa["UseLocalFactor"] ) && ($poa["UseLocalFactor"] != "OK") ) {
+                // is personal factor OK ?
+                if( isset( $poa["UsePersonalFactor"] ) && ($poa["UsePersonalFactor"] != "OK") ) {
                     $transactionResult["result"] = false;
                 }
             }
@@ -846,7 +855,7 @@ class AducidClient {
                     if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
                 }
             }
-            foreach( array("Return_Status", "UseLocalFactor") as $key ) {
+            foreach( array("Return_Status", "UsePersonalFactor") as $key ) {
                 if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
             }
         }
