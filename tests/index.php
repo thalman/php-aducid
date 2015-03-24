@@ -3,7 +3,7 @@ include_once "config.php";
 include_once "aducid/aducid.php";
 include_once "basic_operations.php";
 include_once "room_operations.php";
-include_once "local_factor_operations.php";
+include_once "personal_factor_operations.php";
 include_once "payment_operations.php";
 include_once "link_operations.php";
 
@@ -70,14 +70,14 @@ function startingPage() {
 </ul>
 </div>
 <div class=\"column\">
-<h1>Local factor</h1>
+<h1>Personal factor</h1>
 <ul>
-  <li><a href=\"".AducidClient::currentURL() . "?action=initlf\">Init local factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=changelf\">Change local factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=deletelf\">Delete local factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=verifylf\">Verify local factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=initlf\">Init personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=changelf\">Change personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=deletelf\">Delete personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=verifylf\">Verify personal factor</a></li>
 </ul>
-<h1>Local link</h1>
+<h1>Personal link</h1>
 <ul>
   <li><a href=\"".AducidClient::currentURL() . "?action=primaryreplica\">Primary replica</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=secondaryreplica\">Secondary replica</a></li>
