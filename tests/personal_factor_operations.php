@@ -1,26 +1,26 @@
 <?php
 
-function action_initLF(){
+function action_initPF(){
     $aducid = new AducidSessionClient($GLOBALS['aim']);
-    $aducid->initPersonalFactor($aducid->currentURL() . "?action=verifytransaction");
+    $aducid->initPersonalFactor($aducid->currentURL() . "?action=verify");
     $aducid->invokePeig();
 }
 
-function action_changeLF() {
+function action_changePF() {
     $aducid = new AducidSessionClient($GLOBALS['aim']);
-    $aducid->changePersonalFactor($aducid->currentURL() . "?action=verifytransaction");
+    $aducid->changePersonalFactor($aducid->currentURL() . "?action=verify");
     $aducid->invokePeig();
 }
 
-function action_deleteLF() {
+function action_deletePF() {
     $aducid = new AducidSessionClient($GLOBALS['aim']);
-    $aducid->deletePersonalFactor($aducid->currentURL() . "?action=verifytransaction");
+    $aducid->deletePersonalFactor($aducid->currentURL() . "?action=verify");
     $aducid->invokePeig();
 }
 
-function action_verifyLF() {
+function action_verifyPF() {
     $aducid = new AducidSessionClient($GLOBALS['aim']);
-    $aducid->verifyPersonalFactor($aducid->currentURL() . "?action=verifytransaction");
+    $aducid->verifyPersonalFactor($aducid->currentURL() . "?action=verify");
     $aducid->invokePeig();
 }
 

@@ -60,22 +60,22 @@ function startingPage() {
 <h1>Payment</h1>
 <ul>
   <li><a href=\"".AducidClient::currentURL() . "?action=initpayment\">Init</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=initpaymentlf\">Init + LF</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=initpaymentpf\">Init + PF</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=confirmtext\">Confirm text</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=confirmtextcs\">Confirm text (cs)</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=confirmtextlf\">Confirm text + LF</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=confirmtextcslf\">Confirm text + LF (cs)</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=confirmtextpf\">Confirm text + PF</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=confirmtextcspf\">Confirm text + PF (cs)</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=confirmmoney\">Confirm money transfer</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=confirmmoneylf\">Confirm money transfer + LF</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=confirmmoneypf\">Confirm money transfer + PF</a></li>
 </ul>
 </div>
 <div class=\"column\">
 <h1>Personal factor</h1>
 <ul>
-  <li><a href=\"".AducidClient::currentURL() . "?action=initlf\">Init personal factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=changelf\">Change personal factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=deletelf\">Delete personal factor</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=verifylf\">Verify personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=initpf\">Init personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=changepf\">Change personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=deletepf\">Delete personal factor</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=verifypf\">Verify personal factor</a></li>
 </ul>
 <h1>Personal link</h1>
 <ul>
@@ -90,6 +90,7 @@ function startingPage() {
 function verifyPage() {
     echo "<h1>Operation result</h1>";
     $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->setFromRequest();
     if( $aducid->verify() ) {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ok.png\" /></a> udi ".$aducid->getUserDatabaseIndex() . "<br />";
     } else {
@@ -111,6 +112,7 @@ function verifyPage() {
 function verifyTransactionPage() {
     echo "<h1>Operation result</h1>";
     $aducid = new AducidSessionClient($GLOBALS['aim']);
+    $aducid->setFromRequest();
     $transaction = $aducid->verifyTransaction(); 
     if( $transaction[ "result" ] ) {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ok.png\" /></a> udi ".$aducid->getUserDatabaseIndex() . "<br />";
@@ -191,40 +193,40 @@ switch($action) {
     case "enterroombystory":
         action_enterRoomByStory();
         break;
-    case "initlf":
-        action_initLF();
+    case "initpf":
+        action_initPF();
         break;
-    case "changelf":
-        action_changeLF();
+    case "changepf":
+        action_changePF();
         break;
-    case "deletelf":
-        action_deleteLF();
+    case "deletepf":
+        action_deletePF();
         break;
-    case "verifylf":
-        action_verifyLF();
+    case "verifypf":
+        action_verifyPF();
         break;
     case "initpayment":
         action_initPayment(false);
         break;
-    case "initpaymentlf":
+    case "initpaymentpf":
         action_initPayment(true);
         break;
     case "confirmtext":
         action_confirmTextTransaction( "Too much <i>yellow</i> <b>horse</b>!", false);
         break;
-    case "confirmtextlf":
+    case "confirmtextpf":
         action_confirmTextTransaction( "Too much <i>yellow</i> <b>horse</b>!", true );
         break;
     case "confirmtextcz":
         action_confirmTextTransaction( "Příliš <i>žluťoučký</i> <b>kůň</b>!", false);
         break;
-    case "confirmtextczlf":
+    case "confirmtextczpf":
         action_confirmTextTransaction( "Příliš <i>žluťoučký</i> <b>kůň</b>!", true );
         break;
     case "confirmmoney":
         action_confirmMoneyTransaction( false );
         break;
-    case "confirmmoneylf":
+    case "confirmmoneypf":
         action_confirmMoneyTransaction( true );
         break;
     case "primaryreplica":
