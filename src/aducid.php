@@ -787,7 +787,7 @@ class AducidClient {
      * \return authId of started operation or NULL if fail     
      */
     function confirmTextTransaction($text,$usePersonalFactor,$peigReturnURL=NULL) {
-        $methodParameters = array( "PaymentMessage" => urlencode($text) );
+        $methodParameters = array( "PaymentMessage" => $this->xmlEncode($text) );
         if($usePersonalFactor) { $methodParameters["UsePersonalFactor"] = "1"; }
         return $this->exuse(
             AducidMethodName::CONFIRM_TRANSACTION,
@@ -851,9 +851,10 @@ class AducidClient {
                 }
             }
             if( $transactionResult["result"] ) {
-                foreach( array("PaymentSignature","PaymentMessage","PaymentAmount","PaymentFromAccount", "PaymentToAccount") as $key ) {
-                    if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
+                foreach( array("PaymentSignature", "PaymentAmount", "PaymentFromAccount", "PaymentToAccount") as $key ) {
+                    if( isset($poa[$key]) ) { $transactionResult[$key] = $this->xmlDecode( $poa[$key] ); }
                 }
+                if( isset($poa["PaymentMessage"]) ) { $transactionResult["PaymentMessage"] = $this->xmlDecode( $poa["PaymentMessage"] ); }
             }
             foreach( array("Return_Status", "UsePersonalFactor") as $key ) {
                 if( isset($poa[$key]) ) { $transactionResult[$key] = $poa[$key]; }
@@ -1026,6 +1027,25 @@ class AducidClient {
                         "attributeSetName" => $attributeSetName
                     )
                 );
+    }
+    /**
+     * \brief Method returns string, where < > & and " characters are replaced by element name.
+     *
+     * \see xmlEncode
+     * \return string, escaped text
+     */
+    function xmlEncode($text) {
+        return str_replace( array( "&", "\"", "<", ">" ), array( "&amp;", "&quot;", "&lt;", "&gt;"), $text );
+    }
+    /**
+     * \brief Method returns string, where "&amp;", "&quot;", "&lt;", "&gt;" elements
+     *        are replaced with original characters.
+     *
+     * \see xmlEncode
+     * \return string, unescaped text
+     */
+    function xmlDecode($text) {
+        return str_replace(  array( "&quot;", "&lt;", "&gt;", "&amp;"), array( "\"", "<", ">", "&" ), $text );
     }
     /**
      * \brief Method returns URL of current page. It tries detect ballancer and
