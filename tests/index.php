@@ -141,7 +141,7 @@ function verifyTransactionPage() {
         echo "    <tr><td>$key</td><td>". (
             gettype($value) == "boolean" ?
             ( $value ? "true" : "false" ) :
-            implode( "<br />" , str_split($value,40) ) )
+            implode( "<br />" , str_split($value,50) ) )
             ." (" .gettype($value).") </td></tr>\n";
     }
     echo "    </table>\n";
