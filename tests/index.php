@@ -97,13 +97,16 @@ function verifyPage() {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ko.png\" /></a><br />";
     }
     $all = $aducid->getResult(AducidAttributeSetName::ALL);
-    $err = $aducid->getResult(AducidAttributeSetName::ERROR);
     echo "
     <h2>Authentication process</h2>
     <table>
       <tr> <td><b>Action</b></td> <td><b>statusAIM</b></td> <td><b>statusAuth</b></td> </tr>
-      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>
-      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>      
+      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
+    if( ! $aducid->verify() ) {
+        $err = $aducid->getResult(AducidAttributeSetName::ERROR);
+        echo "      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
+    }
+    echo "
     </table>
 ";
     echo "<br /><br /><a href=\"". AducidClient::currentURL() . "\">Back</a>\n";
@@ -120,13 +123,16 @@ function verifyTransactionPage() {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ko.png\" /></a><br />";
     }
     $all = $aducid->getResult(AducidAttributeSetName::ALL);
-    $err = $aducid->getResult(AducidAttributeSetName::ERROR);
     echo "
     <h2>Authentication process</h2>
     <table>
       <tr> <td><b>Action</b></td> <td><b>statusAIM</b></td> <td><b>statusAuth</b></td> </tr>
-      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>
-      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>      
+      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
+    if( ! $aducid->verify() ) {
+        $err = $aducid->getResult(AducidAttributeSetName::ERROR);
+        echo "      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
+    }
+    echo "
     </table>
     <h2>Transaction</h2>
     <table>
@@ -135,7 +141,7 @@ function verifyTransactionPage() {
         echo "    <tr><td>$key</td><td>". (
             gettype($value) == "boolean" ?
             ( $value ? "true" : "false" ) :
-            implode( "<br />" , str_split($value,30) ) )
+            implode( "<br />" , str_split($value,40) ) )
             ." (" .gettype($value).") </td></tr>\n";
     }
     echo "    </table>\n";
@@ -217,10 +223,10 @@ switch($action) {
     case "confirmtextpf":
         action_confirmTextTransaction( "Too much <i>yellow</i> <b>horse</b>!", true );
         break;
-    case "confirmtextcz":
+    case "confirmtextcs":
         action_confirmTextTransaction( "Příliš <i>žluťoučký</i> <b>kůň</b>!", false);
         break;
-    case "confirmtextczpf":
+    case "confirmtextcspf":
         action_confirmTextTransaction( "Příliš <i>žluťoučký</i> <b>kůň</b>!", true );
         break;
     case "confirmmoney":
