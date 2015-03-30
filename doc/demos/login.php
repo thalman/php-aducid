@@ -78,7 +78,7 @@ case "verify":
     if( $aducid->verify() ) {
         $_SESSION["udi"] = $aducid->getUserDatabaseIndex();
     } else {
-        $result = $aducid->getResult();
+        $result = $aducid->getPSLAttributes();
         error_log(var_export($result,true));
         login_page($result["statusAuth"]);
         exit;

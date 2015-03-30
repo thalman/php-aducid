@@ -55,7 +55,7 @@ function startingPage() {
   <li><a href=\"".AducidClient::currentURL() . "?action=createroombystory\">Create room by story</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=enterroombystory\">Enter room by story</a></li>
   <li><a href=\"".AducidClient::currentURL() . "?action=createroombyname\">Create room by name</a></li>
-  <li><a href=\"".AducidClient::currentURL() . "?action=enterroombystory\">Enter room by name</a></li>
+  <li><a href=\"".AducidClient::currentURL() . "?action=enterroombyname\">Enter room by name</a></li>
 </ul>
 <h1>Payment</h1>
 <ul>
@@ -96,15 +96,25 @@ function verifyPage() {
     } else {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ko.png\" /></a><br />";
     }
-    $all = $aducid->getResult(AducidAttributeSetName::ALL);
+    $all = $aducid->getPSLAttributes(AducidAttributeSetName::ALL);
     echo "
     <h2>Authentication process</h2>
     <table>
       <tr> <td><b>Action</b></td> <td><b>statusAIM</b></td> <td><b>statusAuth</b></td> </tr>
-      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
+      <tr> <td>getPSLAttributes(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
     if( ! $aducid->verify() ) {
-        $err = $aducid->getResult(AducidAttributeSetName::ERROR);
-        echo "      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
+        $err = $aducid->getPSLAttributes(AducidAttributeSetName::ERROR);
+        echo "      <tr> <td>getPSLAttributes(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
+    }
+    echo "
+    </table>
+
+    <h2>PSL(ALL)</h2>
+    <table>
+      <tr> <td><b>Attribute</b></td> <td><b>Value</b></td></tr>
+      ";
+    foreach( $all as $key => $value ) {
+        echo "      <tr> <td>".$key."</td> <td>".$value."</td></tr>\n";
     }
     echo "
     </table>
@@ -122,15 +132,15 @@ function verifyTransactionPage() {
     } else {
         echo "<a href=\"".AducidClient::currentURL()."\"><img src=\"images/ko.png\" /></a><br />";
     }
-    $all = $aducid->getResult(AducidAttributeSetName::ALL);
+    $all = $aducid->getPSLAttributes(AducidAttributeSetName::ALL);
     echo "
     <h2>Authentication process</h2>
     <table>
       <tr> <td><b>Action</b></td> <td><b>statusAIM</b></td> <td><b>statusAuth</b></td> </tr>
-      <tr> <td>getResult(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
+      <tr> <td>getPSLAttributes(ALL)</td> <td>".$all["statusAIM"]."</td>  <td>".$all["statusAuth"]."</td> </tr>\n";
     if( ! $aducid->verify() ) {
-        $err = $aducid->getResult(AducidAttributeSetName::ERROR);
-        echo "      <tr> <td>getResult(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
+        $err = $aducid->getPSLAttributes(AducidAttributeSetName::ERROR);
+        echo "      <tr> <td>getPSLAttributes(ERR)</td> <td>".$err["statusAIM"]."</td>  <td>".$err["statusAuth"]."</td> </tr>\n";
     }
     echo "
     </table>
