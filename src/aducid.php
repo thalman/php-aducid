@@ -840,7 +840,7 @@ class AducidClient {
     function verifyTransaction() {
         $transactionResult = array( "result" => false, "Return_Status" => NULL );
         if( $this->verify() ) {
-            $result = $this->getResult(AducidAttributeSetName::ALL);
+            $result = $this->getPSLAttributes(AducidAttributeSetName::ALL);
             $po = $result["personalObject"];
             $poa = $po->personalObjectAttribute;
             if( $poa["Return_Status"] == "ConfirmedByUser" ) {
@@ -1014,7 +1014,7 @@ class AducidClient {
      * \param string, bindingId
      * \return array, attribute set
      */
-    public function getResult($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    public function getPSLAttributes($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if( $bindingId != NULL ) { $this->bindingId = $bindingId; }
         return $this->sender->callGetPSLAttributes(
@@ -1145,7 +1145,7 @@ class AducidClient {
      * \return string, user identifier
      */
     function getUserDatabaseIndex() {
-        $result = $this->getResult(AducidAttributeSetName::ALL);
+        $result = $this->getPSLAttributes(AducidAttributeSetName::ALL);
         return isset($result["userDatabaseIndex"]) ? $result["userDatabaseIndex"] : NULL;
     }
 }
@@ -1154,9 +1154,10 @@ class AducidClient {
 /**
  *
  * AducidSessionClient extends AducidClient of few functionalities.
- *   - handling authKey2
- *   - using session for autofilling authId, authKey, bindingId and bindingKey
- *   - caching getResult replies
+ * - handling authKey2
+ * - using session for autofilling authId, authKey, bindingId and bindingKey
+ * - caching getPSLAttributes replies
+ * - using session to check own authId is used
  */
 class AducidSessionClient extends AducidClient {
     private $cache;
@@ -1223,6 +1224,26 @@ class AducidSessionClient extends AducidClient {
         $this->saveCredentials($this->authId,$this->authKey,$this->bindingId,$this->bindingKey);
     }
     /**
+     *
+     * \brief Method starts AIM session for requested operation like "open". Received authId is
+     *        stored in session as $this->sessionPrefix . "RequestedAuthId" (aducidRequestedAuthId
+     *        by default). This is used in verify function to enforce using our own authId.
+     *
+     * \param string, operation name
+     * \param string, method name
+     * \param string, method parameter
+     * \param array, personal object
+     * \param string, secondary AIM
+     * \param string, identity link data
+     * \param string, URL where AIMProxy should redirect browser when operation completed
+     * \return string, authId or NULL if it fails.
+     */
+    function requestOperation($operation, $methodName=NULL, $methodParameter=NULL, $personalObject=NULL, $AAIM2=NULL, $ilData=NULL, $peigReturnName=NULL ) {
+        $result = parent::requestOperation( $operation, $methodName, $methodParameter, $personalObject, $AAIM2, $ilData, $peigReturnName );
+        $_SESSION[ $this->sessionPrefix . "RequestedAuthId" ] = $result;
+        return $result;
+    }
+    /**
      * \brief Save credentials into object properties and into session.
      *
      * Method stores ADUCID credentials into object properties and $_SESSION
@@ -1268,6 +1289,7 @@ class AducidSessionClient extends AducidClient {
         if(isset($_SESSION[$this->sessionPrefix ."AuthKey"]) ) { unset($_SESSION[$this->sessionPrefix ."AuthKey"]); }
         if(isset($_SESSION[$this->sessionPrefix ."BindingId"]) )  { unset($_SESSION[$this->sessionPrefix ."BindingId"]); }
         if(isset($_SESSION[$this->sessionPrefix ."BindingKey"]) ) { unset($_SESSION[$this->sessionPrefix ."BindingKey"]); }
+        if(isset($_SESSION[$this->sessionPrefix ."RequestedAuthId"]) ) { unset($_SESSION[$this->sessionPrefix ."RequestedAuthId"]); }
         return $result;
     }
     /**
@@ -1284,17 +1306,17 @@ class AducidSessionClient extends AducidClient {
      * Example:
      *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
      *     $aducid->setFromRequest();
-     *     $result = $aducid->getResult(AducidAttributeSetName::ALL);
+     *     $result = $aducid->getPSLAttributes(AducidAttributeSetName::ALL);
      */
-    function getResult($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
+    function getPSLAttributes($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
         if($this->authId == NULL) { return NULL; }
         if($bindingId == NULL) { $bindingId = $this->bindingId; }
         if( ! isset( $this->cache[$attributeSetName] ) ) {
-            $result = parent::getResult($attributeSetName, $authId, $authKey, $bindingId );
+            $result = parent::getPSLAttributes($attributeSetName, $authId, $authKey, $bindingId );
             if( $result == NULL ) { return NULL; }
             if( gettype($result) != "array" ) {
-                //echo "getResult " .$attributeSetName . "*" .$authId."*".$authKey ."*<br>";
+                //echo "getPSLAttributes " .$attributeSetName . "*" .$authId."*".$authKey ."*<br>";
                 //echo gettype($result);
                 //var_dump($result);
                 return NULL;
@@ -1324,7 +1346,8 @@ class AducidSessionClient extends AducidClient {
      *     }
      */
     function verify() {
-        $result = $this->getResult(AducidAttributeSetName::ALL);
+        if( $this->authId != $_SESSION[ $this->sessionPrefix . "RequestedAuthId" ] ) return false;
+        $result = $this->getPSLAttributes(AducidAttributeSetName::ALL);
         if( isset($result["statusAuth"]) and isset($result["statusAIM"]) ) {
             if( $result["statusAuth"] == "OK" and $result["statusAIM"] == "active" ) {
                 return true;
@@ -1335,7 +1358,7 @@ class AducidSessionClient extends AducidClient {
     /**
      * \brief Cleans internal cache
      *
-     * Method cleans the cache of getResult calls
+     * Method cleans the cache of getPSLAttributes calls
      */
     function cleanCache() {
         $cache = array();
