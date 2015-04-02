@@ -1215,9 +1215,11 @@ class AducidSessionClient extends AducidClient {
      * credentials from http request, You can use this method.
      *
      * Example:
-     *     $ac1 = new AducidSessionClient("http://aim.example.com");
-     *     $ac2 = new AducidSessionClient("http://aim.example.com","second");
-     *     $ac2->setFromRequest();
+     * \code{.php}
+     $ac1 = new AducidSessionClient("http://aim.example.com");
+     $ac2 = new AducidSessionClient("http://aim.example.com","second");
+     $ac2->setFromRequest();
+     \endcode
      */
     function setFromRequest() {
         parent::setFromRequest();
@@ -1304,9 +1306,11 @@ class AducidSessionClient extends AducidClient {
      * current operation. Result is cached for next call.
      *
      * Example:
-     *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
-     *     $aducid->setFromRequest();
-     *     $result = $aducid->getPSLAttributes(AducidAttributeSetName::ALL);
+     * \code{.php}
+     $aducid = new AducidSessionClient($GLOBALS["aim"]);
+     $aducid->setFromRequest();
+     $result = $aducid->getPSLAttributes(AducidAttributeSetName::ALL);
+     \endcode
      */
     function getPSLAttributes($attributeSetName=AducidAttributeSetName::ALL,$authId=NULL,$authKey=NULL,$bindingId=NULL) {
         $this->saveCredentials($authId,$authKey,$bindingId,$this->bindingKey);
@@ -1337,13 +1341,15 @@ class AducidSessionClient extends AducidClient {
      * Method returns true, if authentication has been successfull.
      *
      * Example:
-     *     $aducid = new AducidSessionClient($GLOBALS["aim"]);
-     *     $aducid->setFromRequest();
-     *     if( $aducid->verify ) {
-     *         echo "OK\n";
-     *     } else {
-     *         echo "FAILED\n";
-     *     }
+     \code{.php}
+     $aducid = new AducidSessionClient($GLOBALS["aim"]);
+     $aducid->setFromRequest();
+     if( $aducid->verify ) {
+         echo "OK\n";
+     } else {
+         echo "FAILED\n";
+     }
+     \endcode
      */
     function verify() {
         if( $this->authId != $_SESSION[ $this->sessionPrefix . "RequestedAuthId" ] ) return false;
