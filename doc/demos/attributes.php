@@ -40,7 +40,7 @@ function logged_in_page( $aducid ) {
         "<input type=\"submit\" value=\"update\" />" .
         "<input type=\"hidden\" name=\"action\" value=\"update\" />" .
         "</form>".
-        "<p>You are loggen in.</p>".
+        "<p>You are logged in.</p>".
         "<a href=\"?action=logout\">LOGOUT</a>\n".
         "</div></body>" .
         "</html>";
@@ -55,12 +55,12 @@ function login_page($error="") {
         "<p>This demo application shows how to login and logout with ADUCID. ".
         "Then it allows to read/update user mail attribute stored in AIM. " .
         "Demo presumes, that You have PEIG and valid identity created on ".
-        "<a href=\"".$GLOBALS["aim"]."UIM/\">AIM</a>.</p>";
+        "<a href=\"".$GLOBALS["aim"]."/UIM/\">AIM</a>.</p>";
     if($error != "") {
         echo "<p>Login failed with error code <b>". $error . "</b>!</p>";
     }
     echo
-        "<p>You are not loggen in.</p>".
+        "<p>You are not logged in.</p>".
         "<a href=\"?action=login\">LOGIN</a>\n".
         "</div></body>" .
         "</html>";

@@ -35,7 +35,7 @@ function logged_in_page() {
         "<h1>Welcome " . $_SESSION["udi"] . "</h1>".
         "<p>Every user has its unique identifier in ADUCID, called user databese index (in Your case " . $_SESSION["udi"] . ").".
         "It is unique per AIM and it is persistent, so the application can distinguish particular user.</p>".
-        "<p>You are loggen in.</p>".
+        "<p>You are logged in.</p>".
         "<a href=\"?action=logout\">LOGOUT</a>\n".
         "</div></body>" .
         "</html>";
@@ -49,12 +49,12 @@ function login_page($error="") {
         "<h1>ADUCID login demo</h1>\n".
         "<p>This demo application shows how to login and logout with ADUCID. ".
         "Demo presumes, that You have PEIG and valid identity created on ".
-        "<a href=\"".$GLOBALS["aim"]."UIM/\">AIM</a>.</p>";
+        "<a href=\"".$GLOBALS["aim"]."/UIM/\">AIM</a>.</p>";
     if($error != "") {
         echo "<p>Login failed with error code <b>". $error . "</b>!</p>";
     }
     echo
-        "<p>You are not loggen in.</p>".
+        "<p>You are not logged in.</p>".
         "<a href=\"?action=login\">LOGIN</a>\n".
         "</div></body>" .
         "</html>";
