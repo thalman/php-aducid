@@ -31,7 +31,13 @@ install -d ${RPM_BUILD_ROOT}%{docdir}
 # install application files
 # -------------------------
 for file in ./src/*.php ; do
-    grep -E -v -i "^[ \t]*//" $file >${RPM_BUILD_ROOT}%{sharedir}/aducid/`basename $file`
+    awk '
+        BEGIN{ incomment = 0; }
+        /^[[:space:]]*\/\//{ next; }
+        /^[[:space:]]*\/\*\*/ { incomment = 1; }
+        { if( incomment == 0 ) { print $0; } }
+        /\*\// { incomment = 0; }
+    ' <$file >${RPM_BUILD_ROOT}%{sharedir}/aducid/`basename $file`
     chmod 644 ${RPM_BUILD_ROOT}%{sharedir}/aducid/`basename $file`
 done
 
@@ -39,11 +45,16 @@ done
 # ---------------------
 install -m 644 LICENSE.md ${RPM_BUILD_ROOT}%{docdir}/
 install -m 644 README.md ${RPM_BUILD_ROOT}%{docdir}/
+DOXYGEN=$(which doxygen 2>/dev/null || true)
+if [ "$DOXYGEN" != "" ] ; then
+    $DOXYGEN Doxyfile
+    cp -r doc/html ${RPM_BUILD_ROOT}%{docdir}/
+fi
 
 # demo application
 # ----------------
 install -d ${RPM_BUILD_ROOT}%{docdir}/demos
-for file in doc/demos/{bg.jpg,demo.css} ; do
+for file in doc/demos/{bg.jpg,demo.css,index.html} ; do
     install -m 644 $file ${RPM_BUILD_ROOT}%{docdir}/demos/
 done
 for file in doc/demos/*.php ; do
