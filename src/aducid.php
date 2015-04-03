@@ -315,13 +315,11 @@ class AducidMessageSender {
      * \brief Creates xml string for with personalObject for SOAP request.
      */
     private function createPersonalObjectXML($name, $type, $algorithm) {
-        /*
-         <personalObject xsi:type="xsd:string">
-             <personalObjectName xsi:type="xsd:string">servis24.csas.cz</personalObjectName>
-             <personalObjectTypeName xsi:type="xsd:string">payment</personalObjectTypeName>
-             <personalObjectAlgorithmName xsi:type="xsd:string">PAYMENT</personalObjectAlgorithmName>
-         </personalObject>
-        */
+        // <personalObject xsi:type="xsd:string">
+        //     <personalObjectName xsi:type="xsd:string">servis24.csas.cz</personalObjectName>
+        //     <personalObjectTypeName xsi:type="xsd:string">payment</personalObjectTypeName>
+        //     <personalObjectAlgorithmName xsi:type="xsd:string">PAYMENT</personalObjectAlgorithmName>
+        // </personalObject>
         $xml = "<personalObject>\n<personalObjectName xsi:type=\"xsd:string\">" . $name . "</personalObjectName>\n" ;
         if($type != NULL ) {$xml .= "<personalObjectTypeName xsi:type=\"xsd:string\">".$type."</personalObjectTypeName>\n"; }
         if($algorithm != NULL ) {$xml .= "<personalObjectAlgorithmName xsi:type=\"xsd:string\">".$algorithm."</personalObjectAlgorithmName>\n"; }
