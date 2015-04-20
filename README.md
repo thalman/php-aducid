@@ -3,6 +3,20 @@ php-alucid
 
 PHP SDK for ADUCID authentication
 
+Getting PHP SDK
+---------------
+Clone from github
+
+    git clone https://github.com/thalman/php-aducid.git
+
+Directory structure
+-------------------
+
+* doc/demos - demo application, it demonstrates use of ADUCID product, designated to PHP developers 
+* src - PHP SDK source code
+* tests - testing applications
+* tools - helper tools like RPM spec file or Java to PHP enum conversion script 
+
 Manual installation
 -------------------
 
