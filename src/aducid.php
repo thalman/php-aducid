@@ -120,8 +120,8 @@ class AducidMessageSender {
             }
         } catch ( Exception $e ) {
             $result = array();
-            $result["statusAuth"] == "SDK_ERROR";
-            $result["statusAIM"] == $e->getMessage();
+            $result["statusAuth"] = "SDK_ERROR";
+            $result["statusAIM"] = $e->getMessage();
         }
         return $result;
     }
@@ -201,8 +201,8 @@ class AducidMessageSender {
                 );
         } catch ( Exception $e ) {
             $result = array();
-            $result["statusAuth"] == "SDK_ERROR";
-            $result["statusAIM"] == $e->getMessage();
+            $result["statusAuth"] = "SDK_ERROR";
+            $result["statusAIM"] = $e->getMessage();
         }
         return $result;
     }
@@ -239,8 +239,8 @@ class AducidMessageSender {
             );
         } catch (Exception $e) {
             $result = array();
-            $result["statusAuth"] == "SDK_ERROR";
-            $result["statusAIM"] == $e->getMessage();
+            $result["statusAuth"] = "SDK_ERROR";
+            $result["statusAIM"] = $e->getMessage();
         }
         return $result;
     }
@@ -369,8 +369,8 @@ class AducidMessageSender {
             $result["personalObject"] = $x;
         } catch ( Exception $e ) {
             $result = array();
-            $result["statusAuth"] == "SDK_ERROR";
-            $result["statusAIM"] == $e->getMessage();
+            $result["statusAuth"] = "SDK_ERROR";
+            $result["statusAIM"] = $e->getMessage();
         }
         return $result;
     }
@@ -427,8 +427,8 @@ class AducidMessageSender {
             );
         } catch ( Exception $e ) {
             $result = array();
-            $result["statusAuth"] == "SDK_ERROR";
-            $result["statusAIM"] == $e->getMessage();
+            $result["statusAuth"] = "SDK_ERROR";
+            $result["statusAIM"] = $e->getMessage();
         }
         return $result;
     }
