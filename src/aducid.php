@@ -26,7 +26,7 @@ include_once "aducidenums.php";
  * Minor version (after decimal point) shows the API "features".
  */
 function aducidVersion() {
-    return 3.000;
+    return 3.001;
 }
 
 /**
