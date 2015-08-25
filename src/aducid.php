@@ -26,7 +26,7 @@ include_once "aducidenums.php";
  * Minor version (after decimal point) shows the API "features".
  */
 function aducidVersion() {
-    return 3.001;
+    return 3.002;
 }
 
 /**
@@ -42,15 +42,15 @@ function aducidVersion() {
 function aducidRequire($apilevel) {
     if( floor($apilevel) != floor(aducidVersion()) ) {
         // Major version of API is different
-        throw new Exception(
-            'Wrong major ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').'
-        );
+        $error = 'Wrong major ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').'; 
+        error_log($error);
+        throw new Exception( $error );
     }
     // major is the same, lets compare
     if( $apilevel > aducidVersion() ) {
-        throw new Exception(
-            'Wrong minor ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').'
-        );
+        $error = 'Wrong minor ADUCID API version (requested '.$apilevel.', installed '.aducidVersion().').';
+        error_log( $error );
+        throw new Exception( $error );
     }
     return true;
 }
@@ -119,6 +119,7 @@ class AducidMessageSender {
                 //error_log( "result: ". var_export($result,true) );
             }
         } catch ( Exception $e ) {
+            error_log("Communication with AIM failed.");
             $result = array();
             $result["statusAuth"] = "SDK_ERROR";
             $result["statusAIM"] = $e->getMessage();
@@ -200,6 +201,7 @@ class AducidMessageSender {
                 $soapParams
                 );
         } catch ( Exception $e ) {
+            error_log("Communication with AIM failed.");
             $result = array();
             $result["statusAuth"] = "SDK_ERROR";
             $result["statusAIM"] = $e->getMessage();
@@ -238,6 +240,7 @@ class AducidMessageSender {
                 $soapParams
             );
         } catch (Exception $e) {
+            error_log("Communication with AIM failed.");
             $result = array();
             $result["statusAuth"] = "SDK_ERROR";
             $result["statusAIM"] = $e->getMessage();
@@ -368,6 +371,7 @@ class AducidMessageSender {
             // error_log("reply parsed: " . var_export($x,true));
             $result["personalObject"] = $x;
         } catch ( Exception $e ) {
+            error_log("Communication with AIM failed.");
             $result = array();
             $result["statusAuth"] = "SDK_ERROR";
             $result["statusAIM"] = $e->getMessage();
@@ -426,6 +430,7 @@ class AducidMessageSender {
                 $params
             );
         } catch ( Exception $e ) {
+            error_log("Communication with AIM failed.");
             $result = array();
             $result["statusAuth"] = "SDK_ERROR";
             $result["statusAIM"] = $e->getMessage();
@@ -1350,13 +1355,17 @@ class AducidSessionClient extends AducidClient {
      \endcode
      */
     function verify() {
-        if( $this->authId != $_SESSION[ $this->sessionPrefix . "RequestedAuthId" ] ) return false;
+        if( $this->authId != $_SESSION[ $this->sessionPrefix . "RequestedAuthId" ] ) {
+            error_log("Session authId differs! Stolen session?");
+            return false;
+        }
         $result = $this->getPSLAttributes(AducidAttributeSetName::ALL);
         if( isset($result["statusAuth"]) and isset($result["statusAIM"]) ) {
             if( $result["statusAuth"] == "OK" and $result["statusAIM"] == "active" ) {
-                return true;
+                 return true;
             }
         }
+        error_log("Authentication failed: statusAuth: " . $result["statusAuth"] . " statusAIM: " . $result["statusAIM"]  );
         return false;
     }
     /**
